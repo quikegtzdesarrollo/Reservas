@@ -206,7 +206,6 @@
       font-size: 24px;
       cursor: pointer;
       color: #666;
-      transition: color 0.3s ease;
     }
 
     .modal-reservas .close-btn:hover {
@@ -562,6 +561,43 @@
     .boton-gris:hover {
       background-color: #5A6268;
     }
+
+    /* Estilos para el botón de cancelar reserva */
+    .boton-cancelar {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .boton-cancelar:hover {
+      background-color: #c82333;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    .boton-cancelar:active {
+      transform: translateY(0);
+    }
+
+    /* Estilos para los botones de la modal */
+    .botones-modal-reservas {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .boton-cancelar {
+      flex: 1;
+      max-width: 200px;
+    }
   </style>
 </head>
 <body>
@@ -655,6 +691,9 @@
       <h2>Mis Reservas</h2>
       <div id="contenidoReservas">
         <!-- El contenido se generará dinámicamente -->
+      </div>
+      <div class="botones-modal-reservas">
+        <button id="cancelarReserva" class="boton-cancelar">Cancelar Reserva</button>
       </div>
     </div>
   </div>
@@ -849,6 +888,76 @@
       }
     }
 
+    // Función para obtener disponibilidad actual
+    async function obtenerDisponibilidadActual() {
+      try {
+        const { data, error } = await supabase
+          .from('disponibilidad')
+          .select('*')
+          .limit(1)
+          .maybeSingle()
+
+        if (error) {
+          console.error('Error al obtener disponibilidad:', error)
+          return null
+        }
+
+        return data
+      } catch (error) {
+        console.error('Error en obtenerDisponibilidadActual:', error)
+        return null
+      }
+    }
+
+    // Función para actualizar disponibilidad
+    async function actualizarDisponibilidad(nDesayunos, nComidas, nCenas) {
+      try {
+        const { error } = await supabase
+          .from('disponibilidad')
+          .update({
+            desayunos: nDesayunos,
+            comidas: nComidas,
+            cenas: nCenas
+          })
+          .eq('id', 1)
+
+        if (error) {
+          console.error('Error actualizando disponibilidad:', error)
+          return false
+        }
+        return true
+      } catch (error) {
+        console.error('Error en actualizarDisponibilidad:', error)
+        return false
+      }
+    }
+
+    // Función para eliminar reservas de la base de datos
+    async function eliminarReservas(reservas) {
+      try {
+        const usuarioActual = JSON.parse(localStorage.getItem('usuario_actual'))
+        if (!usuarioActual) {
+          console.error('No se encontró información del usuario')
+          return false
+        }
+
+        // Eliminar reservas por user_id
+        const { error } = await supabase
+          .from('reservas')
+          .delete()
+          .eq('user_id', usuarioActual.id)
+
+        if (error) {
+          console.error('Error eliminando reservas:', error)
+          return false
+        }
+        return true
+      } catch (error) {
+        console.error('Error en eliminarReservas:', error)
+        return false
+      }
+    }
+
     const fechaInicio = new Date(2025, 6, 2)  // Julio es mes 6 (0 index)
     const fechaFin = new Date(2025, 6, 12)
 
@@ -932,21 +1041,6 @@
       } catch (error) {
         console.error('Error en cargarContadores:', error)
         return null
-      }
-    }
-
-    async function actualizarDisponibilidad(nDesayunos, nComidas, nCenas) {
-      const { error } = await supabase
-        .from('disponibilidad')
-        .update({
-          desayunos: nDesayunos,
-          comidas: nComidas,
-          cenas: nCenas
-        })
-        .eq('id', 1)
-
-      if (error) {
-        console.error('Error actualizando disponibilidad:', error)
       }
     }
 
@@ -1233,6 +1327,92 @@
       document.getElementById('modalReservaExistente').addEventListener('click', (e) => {
         if (e.target.id === 'modalReservaExistente') {
           document.getElementById('modalReservaExistente').style.display = 'none'
+        }
+      })
+
+      // Funcionalidad del botón de cancelar reserva
+      document.getElementById('cancelarReserva').addEventListener('click', async () => {
+        if (confirm('¿Estás seguro de que deseas cancelar tu reserva? Esta acción no se puede deshacer.')) {
+          try {
+            const datos = JSON.parse(localStorage.getItem('reserva_actual')) || []
+            console.log('Datos de reserva a cancelar:', datos)
+            
+            if (datos.length > 0) {
+              const cantidadPersonas = parseInt(datos[0].personas || 1)
+              console.log('Cantidad de personas:', cantidadPersonas)
+              
+              // Obtener disponibilidad actual
+              const disponibilidadActual = await obtenerDisponibilidadActual()
+              console.log('Disponibilidad actual antes de restaurar:', disponibilidadActual)
+              
+              if (!disponibilidadActual) {
+                alert('Error al obtener disponibilidad actual. Intenta de nuevo.')
+                return
+              }
+
+              // Calcular nueva disponibilidad (restaurar lo que se había restado)
+              let totalDesayunos = 0, totalComidas = 0, totalCenas = 0
+              
+              datos.forEach(r => {
+                console.log(`Reserva: ${r.tipo} - ${r.fecha} - ${cantidadPersonas} personas`)
+                if (r.tipo === 'desayuno') totalDesayunos += cantidadPersonas
+                else if (r.tipo === 'comida') totalComidas += cantidadPersonas
+                else if (r.tipo === 'cena') totalCenas += cantidadPersonas
+              })
+
+              console.log('Totales a restaurar:', { totalDesayunos, totalComidas, totalCenas })
+
+              // Actualizar disponibilidad en la base de datos
+              const nuevaDisponibilidad = {
+                desayunos: disponibilidadActual.desayunos + totalDesayunos,
+                comidas: disponibilidadActual.comidas + totalComidas,
+                cenas: disponibilidadActual.cenas + totalCenas
+              }
+
+              console.log('Nueva disponibilidad calculada:', nuevaDisponibilidad)
+
+              // Actualizar disponibilidad
+              const actualizacionExitosa = await actualizarDisponibilidad(
+                nuevaDisponibilidad.desayunos,
+                nuevaDisponibilidad.comidas,
+                nuevaDisponibilidad.cenas
+              )
+
+              if (!actualizacionExitosa) {
+                console.error('Fallo en actualización de disponibilidad')
+                // Continuar con la cancelación aunque falle la actualización
+              }
+
+              // Verificar que se actualizó correctamente
+              const disponibilidadVerificada = await obtenerDisponibilidadActual()
+              console.log('Disponibilidad después de actualizar:', disponibilidadVerificada)
+
+              // Eliminar reservas de la base de datos
+              const eliminacionExitosa = await eliminarReservas(datos)
+              if (!eliminacionExitosa) {
+                console.error('Fallo en eliminación de reservas')
+                // Continuar con la cancelación aunque falle la eliminación
+              }
+
+              console.log('Reserva cancelada exitosamente.')
+            }
+
+            // Limpiar datos locales
+            localStorage.removeItem('reserva_actual')
+            
+            // Cerrar la modal
+            document.getElementById('modalReservas').style.display = 'none'
+            
+            // Actualizar contadores
+            await cargarContadores(true)
+            
+            // Mostrar mensaje de confirmación
+            alert('Tu reserva ha sido cancelada exitosamente.')
+            
+          } catch (error) {
+            console.error('Error durante la cancelación:', error)
+            alert('Error durante la cancelación. Intenta de nuevo.')
+          }
         }
       })
 
