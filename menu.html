@@ -620,14 +620,38 @@
       margin-left: 10px;
     }
 
-    /* Estilos para elementos deshabilitados en sábados */
+    /* Estilos para viernes */
+    .dia.viernes {
+      background-color: #f8f9fa;
+      border-left: 4px solid #17a2b8;
+      padding-left: 15px;
+    }
+
+    .dia.viernes h3 {
+      color: #0c5460;
+    }
+
+    .badge-viernes {
+      background-color: #17a2b8;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: normal;
+      margin-left: 10px;
+    }
+
+    /* Estilos para elementos deshabilitados en sábados y viernes */
     .dia.sabado input[type="checkbox"]:disabled + span,
-    .dia.sabado label[style*="opacity: 0.5"] {
+    .dia.sabado label[style*="opacity: 0.5"],
+    .dia.viernes input[type="checkbox"]:disabled + span,
+    .dia.viernes label[style*="opacity: 0.5"] {
       color: #6c757d;
       text-decoration: line-through;
     }
 
-    .dia.sabado button:disabled {
+    .dia.sabado button:disabled,
+    .dia.viernes button:disabled {
       background-color: #6c757d !important;
       color: #fff !important;
     }
@@ -1161,21 +1185,28 @@
         const fecha = new Date(d) // Copia
         const fechaISO = fecha.toISOString().slice(0, 10)
         
-        // Verificar si es sábado (día 6 = sábado)
+        // Verificar si es sábado (día 6 = sábado) o viernes (día 5 = viernes)
         const esSabado = fecha.getDay() === 6
+        const esViernes = fecha.getDay() === 5
 
         const bloque = document.createElement('div')
         bloque.className = 'dia'
         
-        // Agregar clase especial para sábados
+        // Agregar clase especial para sábados y viernes
         if (esSabado) {
           bloque.classList.add('sabado')
+        }
+        if (esViernes) {
+          bloque.classList.add('viernes')
         }
 
         const titulo = document.createElement('h3')
         titulo.textContent = formatearFecha(fecha)
         if (esSabado) {
           titulo.innerHTML += ' <span class="badge-sabado">Solo Desayuno</span>'
+        }
+        if (esViernes) {
+          titulo.innerHTML += ' <span class="badge-viernes">Solo Desayuno</span>'
         }
         bloque.appendChild(titulo)
 
@@ -1187,8 +1218,8 @@
         btnDia.type = 'button'
         btnDia.textContent = 'Seleccionar todas'
         
-        // Deshabilitar botón de "Seleccionar todas" para sábados
-        if (esSabado) {
+        // Deshabilitar botón de "Seleccionar todas" para sábados y viernes
+        if (esSabado || esViernes) {
           btnDia.disabled = true
           btnDia.style.opacity = '0.5'
           btnDia.style.cursor = 'not-allowed'
@@ -1198,7 +1229,7 @@
         const checkboxes = []
 
         btnDia.addEventListener('click', () => {
-          if (esSabado) return // No hacer nada si es sábado
+          if (esSabado || esViernes) return // No hacer nada si es sábado o viernes
           
           diaSeleccionado = !diaSeleccionado
           checkboxes.forEach(cb => {
@@ -1224,6 +1255,14 @@
           
           // Para sábados: solo permitir desayuno, deshabilitar cena
           if (esSabado && tipo !== 'desayuno') {
+            input.disabled = true
+            input.style.opacity = '0.5'
+            label.style.opacity = '0.5'
+            label.style.cursor = 'not-allowed'
+          }
+          
+          // Para viernes: solo permitir desayuno, deshabilitar cena
+          if (esViernes && tipo !== 'desayuno') {
             input.disabled = true
             input.style.opacity = '0.5'
             label.style.opacity = '0.5'
