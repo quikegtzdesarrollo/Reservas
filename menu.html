@@ -1227,14 +1227,15 @@
         const opciones = document.createElement('div')
         opciones.className = 'opciones-dia'
 
-        const tipos = ['desayuno', 'comida', 'cena']
+        // Solo mostrar desayuno y cena, ocultar comida
+        const tipos = ['desayuno', 'cena']
         tipos.forEach(tipo => {
           const label = document.createElement('label')
           const input = document.createElement('input')
           input.type = 'checkbox'
           input.value = `${tipo}|${fechaISO}`
           
-          // Para sábados: solo permitir desayuno, deshabilitar comida y cena
+          // Para sábados: solo permitir desayuno, deshabilitar cena
           if (esSabado && tipo !== 'desayuno') {
             input.disabled = true
             input.style.opacity = '0.5'
