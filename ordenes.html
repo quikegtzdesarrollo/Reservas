@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Órdenes del Día - Congreso</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #F8F8F8;
+      padding: 20px;
+      color: #333;
+      margin: 0;
+    }
+
+    .header {
+      background: #095DA9;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    .filtros {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filtro-grupo {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filtro-grupo label {
+      font-weight: bold;
+      color: #095DA9;
+      font-size: 14px;
+    }
+
+    .filtro-grupo select {
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      min-width: 200px;
+      background: white;
+    }
+
+    .filtro-grupo select:focus {
+      outline: none;
+      border-color: #095DA9;
+    }
+
+    .resumen {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .resumen h2 {
+      color: #095DA9;
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.5em;
+    }
+
+    .lista-reservas {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .lista-reservas h3 {
+      color: #095DA9;
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.3em;
+    }
+
+    .reserva-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s ease;
+    }
+
+    .reserva-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .reserva-item:last-child {
+      border-bottom: none;
+    }
+
+    .reserva-nombre {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .reserva-cantidad {
+      background: #3C8BD1;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-weight: bold;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    /* Estilos para el switch de entregado */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #28a745;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .switch-label {
+      font-size: 12px;
+      font-weight: bold;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .reserva-item.entregado {
+      opacity: 0.6;
+      background-color: #f8f9fa;
+    }
+
+    .reserva-item.entregado .reserva-nombre {
+      text-decoration: line-through;
+    }
+
+    .contador-total {
+      background: #FF6600;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .contador-total h2 {
+      margin: 0 0 10px 0;
+      font-size: 1.2em;
+    }
+
+    .contador-numero {
+      font-size: 3em;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .sin-reservas {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 40px;
+      font-size: 1.1em;
+    }
+
+    .boton-volver {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: #6C757D;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      z-index: 1001;
+    }
+
+    .boton-volver:hover {
+      background-color: #5A6268;
+      transform: scale(1.1);
+    }
+
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      font-size: 1.1em;
+    }
+
+    @media (max-width: 768px) {
+      .filtros {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .filtro-grupo select {
+        min-width: auto;
+      }
+      
+      .reserva-item {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+
+    /* Estilos para el checkbox personalizado */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #095DA9;
+      user-select: none;
+      gap: 8px;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkmark {
+      height: 20px;
+      width: 20px;
+      background-color: #fff;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .checkbox-label:hover .checkmark {
+      border-color: #095DA9;
+    }
+
+    .checkbox-label input:checked ~ .checkmark {
+      background-color: #095DA9;
+      border-color: #095DA9;
+    }
+
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 6px;
+      top: 2px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .checkbox-label input:checked ~ .checkmark:after {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Botón volver -->
+  <button class="boton-volver" id="botonVolver" title="Volver al menú">
+    ←
+  </button>
+
+  <div class="header">
+    <h1>🍽️ Órdenes del Día</h1>
+    <p>Resumen completo de todas las reservas por fecha y tipo de comida</p>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-grupo">
+      <label for="fechaFiltro">Fecha:</label>
+      <select id="fechaFiltro">
+        <option value="">Cargando fechas...</option>
+      </select>
+    </div>
+    
+    <div class="filtro-grupo">
+      <label for="tipoFiltro">Tipo de Comida:</label>
+      <select id="tipoFiltro">
+        <option value="desayuno">🥐 Desayuno</option>
+        <option value="comida">🍽️ Comida</option>
+        <option value="cena">🌙 Cena</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="lista-reservas">
+    <h3 id="tituloLista">Lista de Reservas</h3>
+    
+    <!-- Filtro de solo no entregados movido aquí -->
+    <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #095DA9;">
+      <label class="checkbox-label">
+        <input type="checkbox" id="soloNoEntregados">
+        <span class="checkmark"></span>
+        Mostrar solo reservas no entregadas
+      </label>
+    </div>
+    
+    <div id="contenidoLista">
+      <div class="loading">Cargando reservas...</div>
+    </div>
+  </div>
+
+  <div class="contador-total">
+    <h2>Total de <span id="tipoTotal">Comidas</span></h2>
+    <p class="contador-numero" id="numeroTotal">0</p>
+  </div>
+
+  <div class="resumen">
+    <h2 id="tituloResumen">Resumen del día</h2>
+    <div id="contenidoResumen">
+      <div class="loading">Cargando resumen...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+    // Cliente para usuarios normales (con RLS)
+    const supabase = createClient(
+      'https://zfdvimulaesogcydqyly.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZHZpbXVsYWVzb2djeWRxeWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjgxNzAsImV4cCI6MjA2NjQ0NDE3MH0.UXJ3BM0t06n6Z-RFx4lgZZLhabWEdTAvuLAeETJ26fw'
+    )
+
+    // Cliente administrativo para acceder a todas las reservas (sin RLS)
+    // Por ahora usamos el cliente normal pero con consultas específicas
+    const supabaseAdmin = supabase
+
+    // Elementos del DOM
+    const fechaFiltro = document.getElementById('fechaFiltro')
+    const tipoFiltro = document.getElementById('tipoFiltro')
+    const soloNoEntregados = document.getElementById('soloNoEntregados')
+    const tituloResumen = document.getElementById('tituloResumen')
+    const contenidoResumen = document.getElementById('contenidoResumen')
+    const tituloLista = document.getElementById('tituloLista')
+    const contenidoLista = document.getElementById('contenidoLista')
+    const tipoTotal = document.getElementById('tipoTotal')
+    const numeroTotal = document.getElementById('numeroTotal')
+    const botonVolver = document.getElementById('botonVolver')
+
+    // Fechas del congreso
+    const fechaInicio = new Date(2025, 6, 2)  // Julio es mes 6 (0 index)
+    const fechaFin = new Date(2025, 6, 12)
+
+    // Función para formatear fecha
+    function formatearFecha(fecha) {
+      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+      const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ]
+
+      const diaSemana = dias[fecha.getDay()]
+      const dia = String(fecha.getDate()).padStart(2, '0')
+      const mes = meses[fecha.getMonth()]
+      const anio = fecha.getFullYear()
+
+      return `${diaSemana}, ${dia} de ${mes} de ${anio}`
+    }
+
+    // Función para obtener el tipo de comida según la hora
+    function obtenerTipoPorHora() {
+      const hora = new Date().getHours()
+      if (hora >= 0 && hora <= 9) return 'desayuno'
+      if (hora >= 10 && hora <= 15) return 'comida'
+      return 'cena'
+    }
+
+    // Función para obtener el nombre del tipo de comida
+    function obtenerNombreTipo(tipo) {
+      switch (tipo) {
+        case 'desayuno': return 'Desayunos'
+        case 'comida': return 'Comidas'
+        case 'cena': return 'Cenas'
+        default: return tipo
+      }
+    }
+
+    // Función para obtener el emoji del tipo de comida
+    function obtenerEmojiTipo(tipo) {
+      switch (tipo) {
+        case 'desayuno': return '🥐'
+        case 'comida': return '🍽️'
+        case 'cena': return '🌙'
+        default: return '🍽️'
+      }
+    }
+
+    // Función para generar opciones de fechas
+    function generarOpcionesFechas() {
+      fechaFiltro.innerHTML = ''
+      
+      for (let d = new Date(fechaInicio); d <= fechaFin; d.setDate(d.getDate() + 1)) {
+        const fecha = new Date(d)
+        const fechaISO = fecha.toISOString().slice(0, 10)
+        const fechaFormateada = formatearFecha(fecha)
+        
+        const option = document.createElement('option')
+        option.value = fechaISO
+        option.textContent = fechaFormateada
+        
+        // Preseleccionar fecha actual
+        const hoy = new Date().toISOString().slice(0, 10)
+        if (fechaISO === hoy) {
+          option.selected = true
+        }
+        
+        fechaFiltro.appendChild(option)
+      }
+    }
+
+    // Función para cargar reservas (TODAS las reservas, no solo del usuario logueado)
+    async function cargarReservas() {
+      const fechaSeleccionada = fechaFiltro.value
+      const tipoSeleccionado = tipoFiltro.value
+      
+      if (!fechaSeleccionada) {
+        contenidoLista.innerHTML = '<div class="sin-reservas">Selecciona una fecha</div>'
+        return
+      }
+
+      try {
+        contenidoLista.innerHTML = '<div class="loading">Cargando reservas...</div>'
+        
+        console.log('=== CARGANDO RESERVAS ===')
+        console.log('Fecha seleccionada:', fechaSeleccionada)
+        console.log('Tipo seleccionado:', tipoSeleccionado)
+        
+        // Usar función SQL personalizada que bypass RLS
+        const { data, error } = await supabaseAdmin
+          .rpc('obtener_todas_reservas_admin', {
+            p_fecha: fechaSeleccionada,
+            p_tipo: tipoSeleccionado
+          })
+
+        if (error) {
+          console.error('Error cargando reservas:', error)
+          contenidoLista.innerHTML = '<div class="sin-reservas">Error al cargar las reservas</div>'
+          return
+        }
+
+        console.log('Reservas obtenidas de la base de datos:', data)
+        console.log('Cantidad de reservas:', data ? data.length : 0)
+
+        mostrarReservas(data, fechaSeleccionada, tipoSeleccionado)
+      } catch (error) {
+        console.error('Error en cargarReservas:', error)
+        contenidoLista.innerHTML = '<div class="sin-reservas">Error al cargar las reservas</div>'
+      }
+    }
+
+    // Función para mostrar reservas
+    function mostrarReservas(reservas, fecha, tipo) {
+      const fechaFormateada = formatearFecha(new Date(fecha))
+      const emojiTipo = obtenerEmojiTipo(tipo)
+      const nombreTipo = obtenerNombreTipo(tipo)
+      
+      let tituloListaTexto = `${emojiTipo} ${nombreTipo} - ${fechaFormateada}`
+      if (soloNoEntregados.checked) {
+        tituloListaTexto += ' (Solo no entregados)'
+      }
+      
+      tituloLista.textContent = tituloListaTexto
+      tipoTotal.textContent = nombreTipo
+
+      console.log('=== PROCESANDO RESERVAS ===')
+      console.log('Reservas recibidas:', reservas)
+
+      if (!reservas || reservas.length === 0) {
+        console.log('No hay reservas para mostrar')
+        contenidoLista.innerHTML = '<div class="sin-reservas">No hay reservas para esta fecha y tipo de comida</div>'
+        numeroTotal.textContent = '0'
+        return
+      }
+
+      let html = ''
+      let totalPlatillos = 0
+
+      // Agrupar reservas por usuario para mostrar cada reserva individual
+      const reservasAgrupadas = {}
+      
+      console.log('Procesando cada reserva:')
+      reservas.forEach((reserva, index) => {
+        console.log(`Reserva ${index + 1}:`, reserva)
+        const key = `${reserva.nombre}_${reserva.celular}` // Usar nombre y celular como identificador único
+        console.log(`Clave única: ${key}`)
+        
+        if (!reservasAgrupadas[key]) {
+          reservasAgrupadas[key] = {
+            id: reserva.id, // Preservar el ID original
+            nombre: reserva.nombre,
+            celular: reserva.celular,
+            personas: reserva.personas,
+            platillos: reserva.personas, // Cada persona = 1 platillo
+            entregado: reserva.entregado // Preservar el estado de entrega
+          }
+          console.log(`Nueva reserva agrupada creada para: ${reserva.nombre} con ID: ${reserva.id}`)
+        } else {
+          console.log(`Reserva ya existe para: ${reserva.nombre}, actualizando...`)
+          // Si ya existe, sumar las personas y mantener el estado de entrega más reciente
+          reservasAgrupadas[key].personas += reserva.personas
+          reservasAgrupadas[key].platillos += reserva.personas
+          // Si alguna de las reservas está marcada como entregada, marcar todo como entregado
+          if (reserva.entregado) {
+            reservasAgrupadas[key].entregado = true
+          }
+        }
+      })
+
+      console.log('Reservas agrupadas:', reservasAgrupadas)
+
+      // Convertir a array y ordenar por nombre alfabéticamente
+      console.log('=== ORDENAMIENTO ALFABÉTICO ===')
+      console.log('Nombres antes del ordenamiento:', Object.values(reservasAgrupadas).map(r => r.nombre))
+      
+      const reservasArray = Object.values(reservasAgrupadas).sort((a, b) => {
+        // Función auxiliar para obtener el primer nombre (primera palabra)
+        const obtenerPrimerNombre = (nombre) => {
+          const palabras = nombre.trim().split(' ')
+          return palabras[0] || nombre
+        }
+        
+        // Función auxiliar para obtener el resto del nombre (sin la primera palabra)
+        const obtenerRestoNombre = (nombre) => {
+          const palabras = nombre.trim().split(' ')
+          return palabras.slice(1).join(' ') || ''
+        }
+        
+        const primerNombreA = obtenerPrimerNombre(a.nombre).toLowerCase()
+        const primerNombreB = obtenerPrimerNombre(b.nombre).toLowerCase()
+        
+        console.log(`Comparando: "${a.nombre}" (primer nombre: "${primerNombreA}") vs "${b.nombre}" (primer nombre: "${primerNombreB}")`)
+        
+        // Primero ordenar por primer nombre
+        if (primerNombreA !== primerNombreB) {
+          const resultado = primerNombreA.localeCompare(primerNombreB, 'es', { sensitivity: 'base' })
+          console.log(`  → Primeros nombres diferentes, resultado: ${resultado}`)
+          return resultado
+        }
+        
+        // Si los primeros nombres son iguales, ordenar por el resto del nombre
+        const restoNombreA = obtenerRestoNombre(a.nombre).toLowerCase()
+        const restoNombreB = obtenerRestoNombre(b.nombre).toLowerCase()
+        const resultado = restoNombreA.localeCompare(restoNombreB, 'es', { sensitivity: 'base' })
+        console.log(`  → Primeros nombres iguales, comparando resto: "${restoNombreA}" vs "${restoNombreB}", resultado: ${resultado}`)
+        return resultado
+      })
+
+      console.log('Nombres después del ordenamiento:', reservasArray.map(r => r.nombre))
+      console.log('Array final ordenado:', reservasArray)
+
+      // Aplicar filtro de solo no entregados si está marcado
+      let reservasFiltradas = reservasArray
+      if (soloNoEntregados.checked) {
+        reservasFiltradas = reservasArray.filter(reserva => !reserva.entregado)
+        console.log('Filtro aplicado: Solo no entregados')
+        console.log('Reservas filtradas:', reservasFiltradas)
+      }
+
+      reservasFiltradas.forEach(reserva => {
+        totalPlatillos += reserva.platillos
+        const entregadoClass = reserva.entregado ? 'entregado' : ''
+        html += `
+          <div class="reserva-item ${entregadoClass}" data-id="${reserva.id}">
+            <span class="reserva-nombre">${reserva.nombre} - ${reserva.celular}</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <span class="reserva-cantidad">${reserva.platillos} platillo${reserva.platillos > 1 ? 's' : ''}</span>
+              <div class="switch-container">
+                <label class="switch">
+                  <input type="checkbox" ${reserva.entregado ? 'checked' : ''} onchange="actualizarEntrega('${reserva.id}', this.checked)">
+                  <span class="slider"></span>
+                </label>
+                <span class="switch-label">Entregado</span>
+              </div>
+            </div>
+          </div>
+        `
+        console.log(`Agregando: ${reserva.nombre} - ${reserva.celular} - ${reserva.platillos} platillos - Entregado: ${reserva.entregado}`)
+      })
+
+      console.log('Total de platillos:', totalPlatillos)
+      console.log('HTML generado:', html)
+
+      contenidoLista.innerHTML = html
+      numeroTotal.textContent = totalPlatillos
+    }
+
+    // Función para cargar resumen del día (TODAS las reservas del día)
+    async function cargarResumenDia() {
+      const fechaSeleccionada = fechaFiltro.value
+      
+      if (!fechaSeleccionada) {
+        contenidoResumen.innerHTML = '<div class="sin-reservas">Selecciona una fecha</div>'
+        return
+      }
+
+      try {
+        // Usar función SQL personalizada para obtener resumen
+        const { data, error } = await supabaseAdmin
+          .rpc('obtener_resumen_reservas_admin', {
+            p_fecha: fechaSeleccionada
+          })
+
+        if (error) {
+          console.error('Error cargando resumen:', error)
+          contenidoResumen.innerHTML = '<div class="sin-reservas">Error al cargar el resumen</div>'
+          return
+        }
+
+        console.log('Resumen obtenido:', data)
+        mostrarResumenDiaDesdeFuncion(data, fechaSeleccionada)
+      } catch (error) {
+        console.error('Error en cargarResumenDia:', error)
+        contenidoResumen.innerHTML = '<div class="sin-reservas">Error al cargar el resumen</div>'
+      }
+    }
+
+    // Función para mostrar resumen del día desde función SQL
+    function mostrarResumenDiaDesdeFuncion(resumenData, fecha) {
+      const fechaFormateada = formatearFecha(new Date(fecha))
+      tituloResumen.textContent = `Resumen - ${fechaFormateada}`
+
+      if (!resumenData || resumenData.length === 0) {
+        contenidoResumen.innerHTML = '<div class="sin-reservas">No hay reservas para esta fecha</div>'
+        return
+      }
+
+      const resumen = {
+        desayuno: 0,
+        comida: 0,
+        cena: 0
+      }
+
+      // Procesar datos de la función SQL
+      resumenData.forEach(item => {
+        resumen[item.tipo] = parseInt(item.total_personas)
+      })
+
+      const html = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <h3 style="margin: 0 0 10px 0; color: #095DA9;">🥐 Desayunos</h3>
+            <p style="font-size: 2em; font-weight: bold; margin: 0; color: #333;">${resumen.desayuno}</p>
+          </div>
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <h3 style="margin: 0 0 10px 0; color: #095DA9;">🍽️ Comidas</h3>
+            <p style="font-size: 2em; font-weight: bold; margin: 0; color: #333;">${resumen.comida}</p>
+          </div>
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <h3 style="margin: 0 0 10px 0; color: #095DA9;">🌙 Cenas</h3>
+            <p style="font-size: 2em; font-weight: bold; margin: 0; color: #333;">${resumen.cena}</p>
+          </div>
+        </div>
+      `
+
+      contenidoResumen.innerHTML = html
+    }
+
+    // Función para verificar todas las reservas de la base de datos (sin filtros)
+    async function verificarTodasLasReservas() {
+      try {
+        console.log('=== VERIFICANDO TODAS LAS RESERVAS ===')
+        const { data, error } = await supabaseAdmin
+          .rpc('obtener_todas_reservas_admin')
+
+        if (error) {
+          console.error('Error verificando todas las reservas:', error)
+          return
+        }
+
+        console.log('TODAS las reservas en la base de datos:', data)
+        
+        // Agrupar por fecha y tipo
+        const reservasPorFecha = {}
+        data.forEach(reserva => {
+          if (!reservasPorFecha[reserva.fecha]) {
+            reservasPorFecha[reserva.fecha] = {}
+          }
+          if (!reservasPorFecha[reserva.fecha][reserva.tipo]) {
+            reservasPorFecha[reserva.fecha][reserva.tipo] = []
+          }
+          reservasPorFecha[reserva.fecha][reserva.tipo].push(reserva)
+        })
+
+        console.log('Reservas agrupadas por fecha y tipo:', reservasPorFecha)
+      } catch (error) {
+        console.error('Error en verificarTodasLasReservas:', error)
+      }
+    }
+
+    // Función para actualizar el estado de entrega
+    async function actualizarEntrega(reservaId, entregado) {
+      try {
+        console.log(`=== ACTUALIZANDO ENTREGA ===`)
+        console.log('ID de reserva:', reservaId)
+        console.log('Estado entregado:', entregado)
+        console.log('Tipo de ID:', typeof reservaId)
+        
+        if (!reservaId || reservaId === 'undefined') {
+          console.error('ID de reserva inválido:', reservaId)
+          alert('Error: ID de reserva inválido')
+          return
+        }
+        
+        const { data, error } = await supabaseAdmin
+          .rpc('actualizar_estado_entrega', {
+            p_id: reservaId,
+            p_entregado: entregado
+          })
+
+        if (error) {
+          console.error('Error actualizando entrega:', error)
+          console.error('Detalles del error:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          })
+          alert(`Error al actualizar el estado de entrega: ${error.message}`)
+          return
+        }
+
+        console.log('Estado de entrega actualizado exitosamente:', data)
+        
+        // Actualizar visualmente el elemento
+        const reservaElement = document.querySelector(`[data-id="${reservaId}"]`)
+        if (reservaElement) {
+          if (entregado) {
+            reservaElement.classList.add('entregado')
+          } else {
+            reservaElement.classList.remove('entregado')
+          }
+          console.log('Elemento visual actualizado')
+        } else {
+          console.warn('No se encontró el elemento visual para actualizar')
+        }
+        
+        // Mostrar confirmación
+        const mensaje = entregado ? 'Marcado como entregado' : 'Marcado como pendiente'
+        console.log(mensaje)
+        
+      } catch (error) {
+        console.error('Error en actualizarEntrega:', error)
+        console.error('Stack trace:', error.stack)
+        alert(`Error al actualizar el estado de entrega: ${error.message}`)
+      }
+    }
+
+    // Hacer la función global para que pueda ser llamada desde el HTML
+    window.actualizarEntrega = actualizarEntrega
+
+    // Event listeners
+    fechaFiltro.addEventListener('change', () => {
+      cargarResumenDia()
+      cargarReservas()
+    })
+
+    tipoFiltro.addEventListener('change', () => {
+      cargarReservas()
+    })
+
+    soloNoEntregados.addEventListener('change', () => {
+      cargarReservas()
+    })
+
+    botonVolver.addEventListener('click', () => {
+      window.location.href = 'menu.html'
+    })
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+      // Generar opciones de fechas
+      generarOpcionesFechas()
+      
+      // Preseleccionar tipo según la hora
+      const tipoPorHora = obtenerTipoPorHora()
+      tipoFiltro.value = tipoPorHora
+      
+      // Verificar todas las reservas para debugging
+      verificarTodasLasReservas()
+      
+      // Cargar datos iniciales
+      cargarResumenDia()
+      cargarReservas()
+    })
+  </script>
+</body>
+</html> 

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resumen de Reserva</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #F8F8F8;
+      padding: 20px;
+      color: #333;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #095DA9;
+      text-align: center;
+    }
+
+    .resumen {
+	  background: #fff;
+	  padding: 20px;
+	  border-radius: 10px;
+	  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+	  margin-top: 20px;
+	  /* white-space: pre-wrap; */ /* ← eliminar o comentar esta línea */
+	}
+
+
+    .datos-usuario {
+      text-align: center;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .datos-usuario div {
+      margin: 0;
+      padding: 2px 0;
+    }
+
+    .etiqueta {
+      font-weight: bold;
+    }
+
+    .titulo-reservas {
+      text-align: center;
+      font-weight: bold;
+      color: #095DA9;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .reserva-dia {
+      text-align: left;
+      margin-bottom: 8px;
+    }
+
+    .botones {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .botones button {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .boton-descargar {
+      background-color: #3C8BD1;
+      color: white;
+    }
+
+    .boton-descargar:hover {
+      background-color: #095DA9;
+    }
+
+    .boton-cancelar {
+      background-color: #D9534F;
+      color: white;
+    }
+
+    .boton-cancelar:hover {
+      background-color: #A94442;
+    }
+
+    .boton-guardar {
+      background-color: #28A745;
+      color: white;
+    }
+
+    .boton-guardar:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h1>Resumen de tu Reserva</h1>
+  <div class="resumen" id="resumen">
+    Cargando reserva...
+  </div>
+  <div class="botones">
+    <button id="descargar" class="boton-descargar">Descargar resumen en PDF</button>
+    <button id="guardar-menu" class="boton-guardar">Guardar y regresar al Menú</button>
+    <button id="cancelar" class="boton-cancelar">Cancelar y volver al menú</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+    const supabase = createClient(
+      'https://zfdvimulaesogcydqyly.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZHZpbXVsYWVzb2djeWRxeWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjgxNzAsImV4cCI6MjA2NjQ0NDE3MH0.UXJ3BM0t06n6Z-RFx4lgZZLhabWEdTAvuLAeETJ26fw'
+    )
+
+    // Función para actualizar disponibilidad en la base de datos
+    async function actualizarDisponibilidad(nDesayunos, nComidas, nCenas) {
+      try {
+        console.log(`Intentando actualizar disponibilidad a: Desayunos=${nDesayunos}, Comidas=${nComidas}, Cenas=${nCenas}`)
+        
+        const { data, error } = await supabase
+          .from('disponibilidad')
+          .update({
+            desayunos: nDesayunos,
+            comidas: nComidas,
+            cenas: nCenas
+          })
+          .eq('id', 1)
+          .select()
+
+        if (error) {
+          console.error('Error actualizando disponibilidad:', error)
+          return false
+        }
+
+        console.log('Disponibilidad actualizada exitosamente:', data)
+        return true
+      } catch (error) {
+        console.error('Error en actualizarDisponibilidad:', error)
+        return false
+      }
+    }
+
+    // Función para obtener disponibilidad actual
+    async function obtenerDisponibilidadActual() {
+      try {
+        const { data, error } = await supabase
+          .from('disponibilidad')
+          .select('*')
+          .limit(1)
+          .maybeSingle()
+
+        if (error) {
+          console.error('Error al obtener disponibilidad:', error)
+          return null
+        }
+
+        if (!data) {
+          console.error('No se encontraron datos de disponibilidad')
+          return null
+        }
+
+        return data
+      } catch (error) {
+        console.error('Error en obtenerDisponibilidadActual:', error)
+        return null
+      }
+    }
+
+    // Función para eliminar reservas de la base de datos
+    async function eliminarReservas(reservas) {
+      try {
+        const usuarioActual = JSON.parse(localStorage.getItem('usuario_actual'))
+        if (!usuarioActual) {
+          console.error('No se encontró información del usuario')
+          return false
+        }
+
+        // Eliminar reservas por user_id
+        const { error } = await supabase
+          .from('reservas')
+          .delete()
+          .eq('user_id', usuarioActual.id)
+
+        if (error) {
+          console.error('Error eliminando reservas:', error)
+          return false
+        }
+        return true
+      } catch (error) {
+        console.error('Error en eliminarReservas:', error)
+        return false
+      }
+    }
+
+    function formatearFecha(fechaISO) {
+      // Corregir el problema de zona horaria: crear la fecha correctamente
+      const [anio, mes, dia] = fechaISO.split('-').map(Number)
+      const fecha = new Date(anio, mes - 1, dia) // mes - 1 porque los meses van de 0-11
+      
+      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+      const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ]
+      return `${dias[fecha.getDay()]}, ${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`
+    }
+
+    function obtenerIcono(tipo) {
+      switch (tipo) {
+        case 'desayuno': return '🥐 Desayuno'
+        case 'comida': return '🍽️ Comida'
+        case 'cena': return '🌙 Cena'
+        default: return tipo
+      }
+    }
+
+    const resumenDiv = document.getElementById('resumen')
+    const datos = JSON.parse(localStorage.getItem('reserva_actual'))
+
+    if (!datos || datos.length === 0) {
+      resumenDiv.textContent = 'No hay ninguna reserva registrada.'
+    } else {
+      const { nombre, celular, personas } = datos[0]
+
+      let encabezadoHTML = `
+        <div class="datos-usuario">
+          <div><span class="etiqueta">Nombre:</span> ${nombre}</div>
+          <div><span class="etiqueta">Celular:</span> ${celular}</div>
+          <div><span class="etiqueta">Cantidad:</span> ${personas} persona(s)</div>
+        </div>
+        <div class="titulo-reservas">Reservas</div>
+      `
+
+      // Agrupar por fecha
+      const reservasPorFecha = {}
+      datos.forEach(r => {
+        if (!reservasPorFecha[r.fecha]) reservasPorFecha[r.fecha] = []
+        reservasPorFecha[r.fecha].push(r.tipo)
+      })
+
+      let resumenTexto = `Nombre: ${nombre}\nCelular: ${celular}\nCantidad: ${personas} persona(s)\n\nReservas:\n`
+      let reservasHTML = ''
+
+      Object.entries(reservasPorFecha).forEach(([fecha, tipos]) => {
+        const fechaFormateada = formatearFecha(fecha)
+        const comidasTexto = tipos.map(tipo => obtenerIcono(tipo)).join(', ')
+        resumenTexto += `- ${fechaFormateada}:\n    ${comidasTexto}\n`
+        reservasHTML += `<div class="reserva-dia"><strong>${fechaFormateada}</strong>: ${comidasTexto}</div>`
+      })
+
+      resumenDiv.innerHTML = encabezadoHTML + reservasHTML
+
+      // PDF
+      document.getElementById('descargar').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf
+        const doc = new jsPDF()
+        const lineas = resumenTexto.split('\n')
+        let y = 20
+
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(12)
+        lineas.forEach(linea => {
+          doc.text(linea, 20, y)
+          y += 8
+        })
+
+        doc.save('resumen_reserva.pdf')
+      })
+    }
+
+    // Funcionalidad del botón "Guardar y regresar al Menú"
+    document.getElementById('guardar-menu').addEventListener('click', () => {
+      // Limpiar datos locales
+      localStorage.removeItem('reserva_actual')
+      
+      // Redirigir al menú
+      window.location.href = 'menu.html'
+    })
+
+    document.getElementById('cancelar').addEventListener('click', async () => {
+      if (confirm('¿Estás seguro de que deseas cancelar la reserva y volver al menú? Se perderá la información actual.')) {
+        try {
+          const datos = JSON.parse(localStorage.getItem('reserva_actual')) || []
+          console.log('Datos de reserva a cancelar:', datos)
+          
+          if (datos.length > 0) {
+            const cantidadPersonas = parseInt(datos[0].personas || 1)
+            console.log('Cantidad de personas:', cantidadPersonas)
+            
+            // Obtener disponibilidad actual
+            const disponibilidadActual = await obtenerDisponibilidadActual()
+            console.log('Disponibilidad actual antes de restaurar:', disponibilidadActual)
+            
+            if (!disponibilidadActual) {
+              alert('Error al obtener disponibilidad actual. Intenta de nuevo.')
+              return
+            }
+
+            // Calcular nueva disponibilidad (restaurar lo que se había restado)
+            let totalDesayunos = 0, totalComidas = 0, totalCenas = 0
+            
+            datos.forEach(r => {
+              console.log(`Reserva: ${r.tipo} - ${r.fecha} - ${cantidadPersonas} personas`)
+              if (r.tipo === 'desayuno') totalDesayunos += cantidadPersonas
+              else if (r.tipo === 'comida') totalComidas += cantidadPersonas
+              else if (r.tipo === 'cena') totalCenas += cantidadPersonas
+            })
+
+            console.log('Totales a restaurar:', { totalDesayunos, totalComidas, totalCenas })
+
+            // Actualizar disponibilidad en la base de datos
+            const nuevaDisponibilidad = {
+              desayunos: disponibilidadActual.desayunos + totalDesayunos,
+              comidas: disponibilidadActual.comidas + totalComidas,
+              cenas: disponibilidadActual.cenas + totalCenas
+            }
+
+            console.log('Nueva disponibilidad calculada:', nuevaDisponibilidad)
+
+            // Intentar actualización directa sin RLS
+            const actualizacionExitosa = await actualizarDisponibilidad(
+              nuevaDisponibilidad.desayunos,
+              nuevaDisponibilidad.comidas,
+              nuevaDisponibilidad.cenas
+            )
+
+            if (!actualizacionExitosa) {
+              console.error('Fallo en actualización de disponibilidad')
+              // Continuar con la cancelación aunque falle la actualización
+            }
+
+            // Verificar que se actualizó correctamente
+            const disponibilidadVerificada = await obtenerDisponibilidadActual()
+            console.log('Disponibilidad después de actualizar:', disponibilidadVerificada)
+
+            // Eliminar reservas de la base de datos
+            const eliminacionExitosa = await eliminarReservas(datos)
+            if (!eliminacionExitosa) {
+              console.error('Fallo en eliminación de reservas')
+              // Continuar con la cancelación aunque falle la eliminación
+            }
+
+            console.log('Reserva cancelada exitosamente.')
+          }
+
+          // Limpiar datos locales
+          localStorage.removeItem('reserva_actual')
+          
+          // Redirigir al menú con parámetros de cancelación
+          const params = new URLSearchParams({
+            cancelado: 'true',
+            timestamp: Date.now().toString()
+          })
+          window.location.href = `menu.html?${params.toString()}`
+        } catch (error) {
+          console.error('Error durante la cancelación:', error)
+          alert('Error durante la cancelación. Intenta de nuevo.')
+        }
+      }
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservas de comidas para Congreso</title>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+    const supabaseUrl = 'https://zfdvimulaesogcydqyly.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZHZpbXVsYWVzb2djeWRxeWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjgxNzAsImV4cCI6MjA2NjQ0NDE3MH0.UXJ3BM0t06n6Z-RFx4lgZZLhabWEdTAvuLAeETJ26fw'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // Función para guardar información del usuario
+    async function guardarUsuarioEnDB(user) {
+      try {
+        const { error } = await supabase
+          .from('usuarios')
+          .upsert({
+            id: user.id,
+            email: user.email,
+            nombre: user.user_metadata?.full_name || user.email,
+            avatar_url: user.user_metadata?.avatar_url,
+            ultimo_acceso: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          })
+        
+        if (error) {
+          console.error('Error guardando usuario:', error)
+        }
+      } catch (error) {
+        console.error('Error en guardarUsuarioEnDB:', error)
+      }
+    }
+
+    // Función para obtener reservas del usuario
+    async function obtenerReservasUsuario(userId) {
+      try {
+        const { data, error } = await supabase
+          .from('reservas')
+          .select('*')
+          .eq('user_id', userId)
+          .order('fecha', { ascending: true })
+        
+        if (error) {
+          console.error('Error obteniendo reservas:', error)
+          return []
+        }
+        
+        return data || []
+      } catch (error) {
+        console.error('Error en obtenerReservasUsuario:', error)
+        return []
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Limpiar datos locales al cargar la página de login
+        localStorage.clear()
+        sessionStorage.clear()
+
+        // Verificar sesión actual
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Error obteniendo sesión:', error)
+        }
+
+        if (session && session.user) {
+          // Usuario ya está autenticado
+          console.log('Usuario autenticado:', session.user.email)
+          
+          // Guardar información del usuario en la base de datos
+          await guardarUsuarioEnDB(session.user)
+          
+          // Guardar información del usuario en localStorage para uso en otras páginas
+          localStorage.setItem('usuario_actual', JSON.stringify({
+            id: session.user.id,
+            email: session.user.email,
+            nombre: session.user.user_metadata?.full_name || session.user.email,
+            avatar_url: session.user.user_metadata?.avatar_url
+          }))
+          
+          // Obtener y guardar reservas del usuario
+          const reservas = await obtenerReservasUsuario(session.user.id)
+          if (reservas.length > 0) {
+            localStorage.setItem('reserva_actual', JSON.stringify(reservas))
+          }
+          
+          // Redirigir al menú
+          window.location.href = 'menu.html'
+        }
+
+        // Configurar listener para cambios de autenticación
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            console.log('Usuario inició sesión:', session.user.email)
+            
+            // Limpiar datos locales antes de guardar nueva información
+            localStorage.clear()
+            sessionStorage.clear()
+            
+            // Guardar información del usuario
+            await guardarUsuarioEnDB(session.user)
+            
+            localStorage.setItem('usuario_actual', JSON.stringify({
+              id: session.user.id,
+              email: session.user.email,
+              nombre: session.user.user_metadata?.full_name || session.user.email,
+              avatar_url: session.user.user_metadata?.avatar_url
+            }))
+            
+            // Obtener reservas existentes del usuario
+            const reservas = await obtenerReservasUsuario(session.user.id)
+            if (reservas.length > 0) {
+              localStorage.setItem('reserva_actual', JSON.stringify(reservas))
+            }
+            
+            // Redirigir al menú
+            window.location.href = 'menu.html'
+          }
+          
+          if (event === 'SIGNED_OUT') {
+            console.log('Usuario cerró sesión')
+            // Limpiar datos locales cuando el usuario cierra sesión
+            localStorage.clear()
+            sessionStorage.clear()
+          }
+        })
+
+        const loginBtn = document.getElementById('login')
+        loginBtn.addEventListener('click', async () => {
+          try {
+            await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: `${window.location.origin}/menu.html`
+              }
+            })
+          } catch (error) {
+            console.error('Error en login:', error)
+            alert('Error al iniciar sesión. Intenta de nuevo.')
+          }
+        })
+      } catch (error) {
+        console.error('Error en DOMContentLoaded:', error)
+      }
+    })
+  </script>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #f5f9ff;
+    }
+    h1 {
+      color: #095DA9;
+      text-align: center;
+    }
+    button {
+      background-color: #3C8BD1;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #095DA9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reservas de comidas para Congreso</h1>
+  <button id="login">Iniciar sesión con Google</button>
+</body>
+</html>
