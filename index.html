@@ -14,14 +14,19 @@
     // Configuración para manejo de URLs
     const CONFIG = {
       isLocalhost: () => {
-        return window.location.hostname === 'localhost' || 
+        const isLocal = window.location.hostname === 'localhost' || 
                window.location.hostname === '127.0.0.1' ||
                window.location.hostname === '';
+        console.log('Detectado entorno:', isLocal ? 'localhost' : 'producción');
+        console.log('Hostname actual:', window.location.hostname);
+        return isLocal;
       },
       getAuthRedirectUrl: () => {
-        return CONFIG.isLocalhost() 
+        const redirectUrl = CONFIG.isLocalhost() 
           ? `${window.location.origin}/menu.html`
           : 'https://quikegtzdesarrollo.github.io/Reservas/menu.html';
+        console.log('URL de redirección configurada:', redirectUrl);
+        return redirectUrl;
       }
     };
 
