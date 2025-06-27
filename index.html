@@ -133,10 +133,16 @@
         const loginBtn = document.getElementById('login')
         loginBtn.addEventListener('click', async () => {
           try {
+            // Determinar la URL de redirección basada en el entorno
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            const redirectUrl = isLocalhost 
+              ? `${window.location.origin}/menu.html`
+              : 'https://quikegtzdesarrollo.github.io/Reservas/menu.html'
+            
             await supabase.auth.signInWithOAuth({
               provider: 'google',
               options: {
-                redirectTo: `${window.location.origin}/menu.html`
+                redirectTo: redirectUrl
               }
             })
           } catch (error) {
@@ -157,11 +163,18 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      background: #f5f9ff;
+      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 20px;
     }
     h1 {
-      color: #095DA9;
+      color: white;
       text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+      margin-bottom: 30px;
     }
     button {
       background-color: #3C8BD1;
@@ -172,9 +185,13 @@
       border-radius: 8px;
       cursor: pointer;
       margin-top: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
     }
     button:hover {
       background-color: #095DA9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
     }
   </style>
 </head>
