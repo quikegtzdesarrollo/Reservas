@@ -748,6 +748,100 @@
       font-size: 14px;
       line-height: 1.4;
     }
+
+    /* Centrar el botón de seleccionar todas las comidas */
+    .campo > #seleccionar-todo {
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Estilos para las opciones del menú */
+    .opciones-menu {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .opciones-menu h5 {
+      margin: 0 0 15px 0;
+      color: #495057;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .opciones-container {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .opcion-switch {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding: 10px 15px;
+      background: white;
+      border: 2px solid #dee2e6;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      min-width: 100px;
+      justify-content: center;
+    }
+
+    .opcion-switch:hover {
+      border-color: #007bff;
+      background: #f8f9ff;
+    }
+
+    .opcion-switch input[type="radio"] {
+      display: none;
+    }
+
+    .opcion-switch input[type="radio"]:checked + .opcion-texto {
+      color: #007bff;
+      font-weight: 600;
+    }
+
+    .opcion-switch input[type="radio"]:checked {
+      background: #007bff;
+    }
+
+    .opcion-switch:has(input[type="radio"]:checked) {
+      border-color: #007bff;
+      background: #e3f2fd;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    .opcion-texto {
+      font-size: 14px;
+      color: #6c757d;
+      transition: all 0.3s ease;
+    }
+
+    .error-opcion {
+      color: #dc3545;
+      font-size: 14px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .opcion-switch.error {
+      border-color: #dc3545;
+      background: #f8d7da;
+    }
+
+    .opcion-switch.error:hover {
+      border-color: #c82333;
+      background: #f5c6cb;
+    }
   </style>
 </head>
 <body>
@@ -879,11 +973,14 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZHZpbXVsYWVzb2djeWRxeWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjgxNzAsImV4cCI6MjA2NjQ0NDE3MH0.UXJ3BM0t06n6Z-RFx4lgZZLhabWEdTAvuLAeETJ26fw'
     )
 
-    // Estructura de datos del menú
+    // Estructura de datos del menú con opciones
     const menuData = {
       '2025-07-02': { // Día 1
         desayuno: 'Huevos a la mexicana, frijoles y tortillas',
-        cena: 'Empanadas de queso (res), ensalada'
+        cena: {
+          texto: 'Empanadas de queso (res), ensalada',
+          opciones: ['queso', 'res']
+        }
       },
       '2025-07-03': { // Día 2
         desayuno: 'Burritos de huevo con chorizo, ensalada',
@@ -895,7 +992,10 @@
       },
       '2025-07-05': { // Día 4
         desayuno: 'Sincronizadas de jamon y queso, pico de gallo',
-        cena: 'Flautas de papa(res) ensalada, crema'
+        cena: {
+          texto: 'Flautas de papa(res) ensalada, crema',
+          opciones: ['papa', 'res']
+        }
       },
       '2025-07-06': { // Día 5
         desayuno: 'Avena y pan dulce',
@@ -903,7 +1003,10 @@
       },
       '2025-07-07': { // Día 6
         desayuno: 'Molletes, papitas',
-        cena: 'Tortas de aguacate con queso(res)'
+        cena: {
+          texto: 'Tortas de aguacate con queso(res)',
+          opciones: ['queso', 'res']
+        }
       },
       '2025-07-08': { // Día 7
         desayuno: 'Chilaquiles y frijoles',
@@ -919,11 +1022,14 @@
       },
       '2025-07-11': { // Día 10
         desayuno: 'Huevos estrellados con salsa',
-        cena: 'Entomatadas de queso (pollo) frijoles y spagueti'
+        cena: {
+          texto: 'Entomatadas de queso (pollo) frijoles y spagueti',
+          opciones: ['queso', 'pollo']
+        }
       }
     }
 
-    // Función para mostrar el menú
+    // Función para mostrar el menú con controles de opciones
     function mostrarMenu(fechaISO, tipo) {
       const menuInfo = menuData[fechaISO]
       if (!menuInfo || !menuInfo[tipo]) return
@@ -931,17 +1037,74 @@
       const fecha = new Date(fechaISO)
       const fechaFormateada = formatearFecha(fecha)
       const tipoComida = tipo === 'desayuno' ? 'Desayuno' : 'Cena'
-      const menu = menuInfo[tipo]
+      
+      // Verificar si el menú tiene opciones
+      const menuItem = menuInfo[tipo]
+      const tieneOpciones = typeof menuItem === 'object' && menuItem.opciones
+      const menuTexto = tieneOpciones ? menuItem.texto : menuItem
 
       const contenidoDiv = document.getElementById('contenidoMenu')
+      
+      let opcionesHTML = ''
+      if (tieneOpciones) {
+        opcionesHTML = `
+          <div class="opciones-menu">
+            <h5>Selecciona tu preferencia:</h5>
+            <div class="opciones-container">
+              ${menuItem.opciones.map(opcion => `
+                <label class="opcion-switch">
+                  <input type="radio" name="opcion-${fechaISO}-${tipo}" value="${opcion}" required>
+                  <span class="opcion-texto">${opcion.charAt(0).toUpperCase() + opcion.slice(1)}</span>
+                </label>
+              `).join('')}
+            </div>
+            <div class="error-opcion" id="error-opcion-${fechaISO}-${tipo}" style="display: none;">
+              ⚠️ Por favor selecciona una opción
+            </div>
+          </div>
+        `
+      }
+
       contenidoDiv.innerHTML = `
         <div class="menu-item">
           <h4>${fechaFormateada} - ${tipoComida}</h4>
-          <p>${menu}</p>
+          <p>${menuTexto}</p>
+          ${opcionesHTML}
         </div>
       `
 
+      // Guardar información del menú actual para validación
+      contenidoDiv.dataset.fechaISO = fechaISO
+      contenidoDiv.dataset.tipo = tipo
+      contenidoDiv.dataset.tieneOpciones = tieneOpciones
+
+      // Agregar event listeners para los radio buttons si hay opciones
+      if (tieneOpciones) {
+        setTimeout(() => {
+          const radioButtons = document.querySelectorAll(`input[name="opcion-${fechaISO}-${tipo}"]`)
+          radioButtons.forEach(radio => {
+            radio.addEventListener('change', () => {
+              limpiarErroresOpcion(fechaISO, tipo)
+            })
+          })
+        }, 100)
+      }
+
       document.getElementById('modalMenu').style.display = 'flex'
+    }
+
+    // Función para limpiar errores de opciones
+    function limpiarErroresOpcion(fechaISO, tipo) {
+      const errorDiv = document.getElementById(`error-opcion-${fechaISO}-${tipo}`)
+      if (errorDiv) {
+        errorDiv.style.display = 'none'
+      }
+      
+      // Remover clases de error de los switches
+      const switches = document.querySelectorAll(`input[name="opcion-${fechaISO}-${tipo}"]`)
+      switches.forEach(sw => {
+        sw.closest('.opcion-switch').classList.remove('error')
+      })
     }
 
     // Función para verificar directamente la base de datos
@@ -1295,19 +1458,61 @@
       const reservas = []
       let totalDesayunos = 0, totalCenas = 0
 
-      checkboxes.forEach(cb => {
+      // Validar opciones para cada reserva seleccionada
+      for (const cb of checkboxes) {
         const [tipo, fecha] = cb.value.split('|')
-        reservas.push({ 
-          nombre, 
-          celular, 
-          tipo, 
-          fecha, 
-          personas,
-          user_id: usuarioActual.id  // Agregar user_id a cada reserva
-        })
+        
+        // Verificar si el menú tiene opciones que requieren selección
+        const menuItem = menuData[fecha] && menuData[fecha][tipo]
+        const tieneOpciones = typeof menuItem === 'object' && menuItem.opciones
+        
+        if (tieneOpciones) {
+          // Buscar la opción seleccionada para esta fecha y tipo
+          const opcionSeleccionada = document.querySelector(`input[name="opcion-${fecha}-${tipo}"]:checked`)
+          
+          if (!opcionSeleccionada) {
+            // Mostrar error visual en el modal del menú
+            const errorDiv = document.getElementById(`error-opcion-${fecha}-${tipo}`)
+            if (errorDiv) {
+              errorDiv.style.display = 'flex'
+              // Agregar clase de error a los switches
+              const switches = document.querySelectorAll(`input[name="opcion-${fecha}-${tipo}"]`)
+              switches.forEach(sw => {
+                sw.closest('.opcion-switch').classList.add('error')
+              })
+            }
+            
+            // Mostrar el modal del menú para que el usuario seleccione
+            mostrarMenu(fecha, tipo)
+            alert(`Por favor selecciona tu preferencia para ${tipo} del ${formatearFecha(new Date(fecha))}`)
+            return
+          }
+          
+          // Agregar la reserva con la preferencia seleccionada
+          reservas.push({ 
+            nombre, 
+            celular, 
+            tipo, 
+            fecha, 
+            personas,
+            user_id: usuarioActual.id,
+            preferencia: opcionSeleccionada.value
+          })
+        } else {
+          // Agregar la reserva sin preferencia
+          reservas.push({ 
+            nombre, 
+            celular, 
+            tipo, 
+            fecha, 
+            personas,
+            user_id: usuarioActual.id
+          })
+        }
+        
         if (tipo === 'desayuno') totalDesayunos += personas
         else if (tipo === 'cena') totalCenas += personas
-      })
+      }
 
       // Obtener la disponibilidad actual
       const dispActual = await cargarContadores()
