@@ -879,6 +879,71 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZHZpbXVsYWVzb2djeWRxeWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjgxNzAsImV4cCI6MjA2NjQ0NDE3MH0.UXJ3BM0t06n6Z-RFx4lgZZLhabWEdTAvuLAeETJ26fw'
     )
 
+    // Estructura de datos del menú
+    const menuData = {
+      '2025-07-02': { // Día 1
+        desayuno: 'Huevos a la mexicana, frijoles y tortillas',
+        cena: 'Empanadas de queso (res), ensalada'
+      },
+      '2025-07-03': { // Día 2
+        desayuno: 'Burritos de huevo con chorizo, ensalada',
+        cena: 'Tortitas de papa, spaguetti, ensalada'
+      },
+      '2025-07-04': { // Día 3
+        desayuno: 'Licuado de fresa, sándwich de cacahuatina',
+        cena: 'Tamales, frijoles rancheros, salsa'
+      },
+      '2025-07-05': { // Día 4
+        desayuno: 'Sincronizadas de jamon y queso, pico de gallo',
+        cena: 'Flautas de papa(res) ensalada, crema'
+      },
+      '2025-07-06': { // Día 5
+        desayuno: 'Avena y pan dulce',
+        cena: 'Coliflor empanizada, frijoles y arroz'
+      },
+      '2025-07-07': { // Día 6
+        desayuno: 'Molletes, papitas',
+        cena: 'Tortas de aguacate con queso(res)'
+      },
+      '2025-07-08': { // Día 7
+        desayuno: 'Chilaquiles y frijoles',
+        cena: 'SOPES'
+      },
+      '2025-07-09': { // Día 8
+        desayuno: 'Tortilla de huevo, frijoles',
+        cena: 'Sopa de fideo con brócoli, frijoles y tortillas'
+      },
+      '2025-07-10': { // Día 9
+        desayuno: 'Yogurt con granola y fruta',
+        cena: 'Sopa de quinoa'
+      },
+      '2025-07-11': { // Día 10
+        desayuno: 'Huevos estrellados con salsa',
+        cena: 'Entomatadas de queso (pollo) frijoles y spagueti'
+      }
+    }
+
+    // Función para mostrar el menú
+    function mostrarMenu(fechaISO, tipo) {
+      const menuInfo = menuData[fechaISO]
+      if (!menuInfo || !menuInfo[tipo]) return
+
+      const fecha = new Date(fechaISO)
+      const fechaFormateada = formatearFecha(fecha)
+      const tipoComida = tipo === 'desayuno' ? 'Desayuno' : 'Cena'
+      const menu = menuInfo[tipo]
+
+      const contenidoDiv = document.getElementById('contenidoMenu')
+      contenidoDiv.innerHTML = `
+        <div class="menu-item">
+          <h4>${fechaFormateada} - ${tipoComida}</h4>
+          <p>${menu}</p>
+        </div>
+      `
+
+      document.getElementById('modalMenu').style.display = 'flex'
+    }
+
     // Función para verificar directamente la base de datos
     async function verificarBaseDeDatos() {
       console.log('=== VERIFICANDO BASE DE DATOS DIRECTAMENTE ===')
@@ -1114,50 +1179,6 @@
 
     const fechaInicio = new Date(2025, 6, 2)  // Julio es mes 6 (0 index)
     const fechaFin = new Date(2025, 6, 12)
-
-    // Estructura de datos del menú
-    const menuData = {
-      '2025-07-02': { // Día 1
-        desayuno: 'Huevos a la mexicana, frijoles y tortillas',
-        cena: 'Empanadas de queso (res), ensalada'
-      },
-      '2025-07-03': { // Día 2
-        desayuno: 'Burritos de huevo con chorizo, ensalada',
-        cena: 'Tortitas de papa, spaguetti, ensalada'
-      },
-      '2025-07-04': { // Día 3
-        desayuno: 'Licuado de fresa, sándwich de cacahuatina',
-        cena: 'Tamales, frijoles rancheros, salsa'
-      },
-      '2025-07-05': { // Día 4
-        desayuno: 'Sincronizadas de jamon y queso, pico de gallo',
-        cena: 'Flautas de papa(res) ensalada, crema'
-      },
-      '2025-07-06': { // Día 5
-        desayuno: 'Avena y pan dulce',
-        cena: 'Coliflor empanizada, frijoles y arroz'
-      },
-      '2025-07-07': { // Día 6
-        desayuno: 'Molletes, papitas',
-        cena: 'Tortas de aguacate con queso(res)'
-      },
-      '2025-07-08': { // Día 7
-        desayuno: 'Chilaquiles y frijoles',
-        cena: 'SOPES'
-      },
-      '2025-07-09': { // Día 8
-        desayuno: 'Tortilla de huevo, frijoles',
-        cena: 'Sopa de fideo con brócoli, frijoles y tortillas'
-      },
-      '2025-07-10': { // Día 9
-        desayuno: 'Yogurt con granola y fruta',
-        cena: 'Sopa de quinoa'
-      },
-      '2025-07-11': { // Día 10
-        desayuno: 'Huevos estrellados con salsa',
-        cena: 'Entomatadas de queso (pollo) frijoles y spagueti'
-      }
-    }
 
     const contadores = {
       desayuno: document.getElementById('contador-desayuno'),
@@ -1608,27 +1629,6 @@
           document.getElementById('modalMenu').style.display = 'none'
         }
       })
-
-      // Función para mostrar el menú
-      function mostrarMenu(fechaISO, tipo) {
-        const menuInfo = menuData[fechaISO]
-        if (!menuInfo || !menuInfo[tipo]) return
-
-        const fecha = new Date(fechaISO)
-        const fechaFormateada = formatearFecha(fecha)
-        const tipoComida = tipo === 'desayuno' ? 'Desayuno' : 'Cena'
-        const menu = menuInfo[tipo]
-
-        const contenidoDiv = document.getElementById('contenidoMenu')
-        contenidoDiv.innerHTML = `
-          <div class="menu-item">
-            <h4>${fechaFormateada} - ${tipoComida}</h4>
-            <p>${menu}</p>
-          </div>
-        `
-
-        document.getElementById('modalMenu').style.display = 'flex'
-      }
 
       // Funcionalidad del botón de cancelar reserva
       document.getElementById('cancelarReserva').addEventListener('click', async () => {
