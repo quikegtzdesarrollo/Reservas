@@ -663,11 +663,6 @@
         <div class="sub">(disponibles)</div>
       </div>
       <div>
-        <div class="etiqueta">🍽️ Comidas</div>
-        <span id="contador-comida">--</span>
-        <div class="sub">(disponibles)</div>
-      </div>
-      <div>
         <div class="etiqueta">🌙 Cenas</div>
         <span id="contador-cena">--</span>
         <div class="sub">(disponibles)</div>
@@ -782,7 +777,6 @@
         
         // Actualizar contadores inmediatamente
         animarContador(contadores.desayuno, data.desayunos)
-        animarContador(contadores.comida, data.comidas)
         animarContador(contadores.cena, data.cenas)
         
         return data
@@ -943,13 +937,12 @@
     }
 
     // Función para actualizar disponibilidad
-    async function actualizarDisponibilidad(nDesayunos, nComidas, nCenas) {
+    async function actualizarDisponibilidad(nDesayunos, nCenas) {
       try {
         const { error } = await supabase
           .from('disponibilidad')
           .update({
             desayunos: nDesayunos,
-            comidas: nComidas,
             cenas: nCenas
           })
           .eq('id', 1)
@@ -996,7 +989,6 @@
 
     const contadores = {
       desayuno: document.getElementById('contador-desayuno'),
-      comida: document.getElementById('contador-comida'),
       cena: document.getElementById('contador-cena'),
     }
 
@@ -1067,7 +1059,6 @@
 
         // Actualizar contadores en la UI
         animarContador(contadores.desayuno, data.desayunos)
-        animarContador(contadores.comida, data.comidas)
         animarContador(contadores.cena, data.cenas)
 
         return data // devolver disponibilidad actual
@@ -1109,7 +1100,7 @@
       }
 
       const reservas = []
-      let totalDesayunos = 0, totalComidas = 0, totalCenas = 0
+      let totalDesayunos = 0, totalCenas = 0
 
       checkboxes.forEach(cb => {
         const [tipo, fecha] = cb.value.split('|')
@@ -1122,7 +1113,6 @@
           user_id: usuarioActual.id  // Agregar user_id a cada reserva
         })
         if (tipo === 'desayuno') totalDesayunos += personas
-        else if (tipo === 'comida') totalComidas += personas
         else if (tipo === 'cena') totalCenas += personas
       })
 
@@ -1136,7 +1126,6 @@
 
       // Validar si hay suficiente disponibilidad para descontar
       if (totalDesayunos > dispActual.desayunos ||
-          totalComidas > dispActual.comidas ||
           totalCenas > dispActual.cenas) {
         alert('No hay suficiente disponibilidad para la cantidad seleccionada.')
         return
@@ -1153,13 +1142,11 @@
       // Actualizar disponibilidad restando lo reservado
       await actualizarDisponibilidad(
         dispActual.desayunos - totalDesayunos,
-        dispActual.comidas - totalComidas,
         dispActual.cenas - totalCenas
       )
 
       // Actualizar contadores en UI
       animarContador(contadores.desayuno, dispActual.desayunos - totalDesayunos)
-      animarContador(contadores.comida, dispActual.comidas - totalComidas)
       animarContador(contadores.cena, dispActual.cenas - totalCenas)
 
       localStorage.setItem('reserva_actual', JSON.stringify(reservas))
@@ -1426,21 +1413,19 @@
               }
 
               // Calcular nueva disponibilidad (restaurar lo que se había restado)
-              let totalDesayunos = 0, totalComidas = 0, totalCenas = 0
+              let totalDesayunos = 0, totalCenas = 0
               
               datos.forEach(r => {
                 console.log(`Reserva: ${r.tipo} - ${r.fecha} - ${cantidadPersonas} personas`)
                 if (r.tipo === 'desayuno') totalDesayunos += cantidadPersonas
-                else if (r.tipo === 'comida') totalComidas += cantidadPersonas
                 else if (r.tipo === 'cena') totalCenas += cantidadPersonas
               })
 
-              console.log('Totales a restaurar:', { totalDesayunos, totalComidas, totalCenas })
+              console.log('Totales a restaurar:', { totalDesayunos, totalCenas })
 
               // Actualizar disponibilidad en la base de datos
               const nuevaDisponibilidad = {
                 desayunos: disponibilidadActual.desayunos + totalDesayunos,
-                comidas: disponibilidadActual.comidas + totalComidas,
                 cenas: disponibilidadActual.cenas + totalCenas
               }
 
@@ -1449,7 +1434,6 @@
               // Actualizar disponibilidad
               const actualizacionExitosa = await actualizarDisponibilidad(
                 nuevaDisponibilidad.desayunos,
-                nuevaDisponibilidad.comidas,
                 nuevaDisponibilidad.cenas
               )
 
@@ -1552,7 +1536,6 @@
     function obtenerIcono(tipo) {
       switch (tipo) {
         case 'desayuno': return '🥐 Desayuno'
-        case 'comida': return '🍽️ Comida'
         case 'cena': return '🌙 Cena'
         default: return tipo
       }
