@@ -655,6 +655,99 @@
       background-color: #6c757d !important;
       color: #fff !important;
     }
+
+    /* Estilos para el ícono de menú */
+    .menu-icon {
+      background: none;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 8px;
+      padding: 2px;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-icon:hover {
+      background-color: #007bff;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .menu-icon:disabled {
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .menu-icon:disabled:hover {
+      background-color: transparent;
+      transform: none;
+    }
+
+    /* Estilos para la modal del menú */
+    .modal-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1003;
+    }
+
+    .modal-menu .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .modal-menu .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-menu .close-btn:hover {
+      color: #333;
+    }
+
+    .menu-content {
+      margin-top: 20px;
+    }
+
+    .menu-item {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-left: 3px solid #007bff;
+      background-color: #f8f9fa;
+    }
+
+    .menu-item h4 {
+      margin: 0 0 5px 0;
+      color: #007bff;
+      font-size: 16px;
+    }
+
+    .menu-item p {
+      margin: 0;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -763,6 +856,17 @@
       <div class="botones-modal">
         <button id="verReservaExistente" class="boton-verde">Ver mi reserva actual</button>
         <button id="cerrarModalExistente" class="boton-gris">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal del menú -->
+  <div class="modal-menu" id="modalMenu">
+    <div class="modal-content">
+      <button class="close-btn" id="closeModalMenu">&times;</button>
+      <h2>🍽️ Menú del Día</h2>
+      <div id="contenidoMenu" class="menu-content">
+        <!-- El contenido se generará dinámicamente -->
       </div>
     </div>
   </div>
@@ -1010,6 +1114,50 @@
 
     const fechaInicio = new Date(2025, 6, 2)  // Julio es mes 6 (0 index)
     const fechaFin = new Date(2025, 6, 12)
+
+    // Estructura de datos del menú
+    const menuData = {
+      '2025-07-02': { // Día 1
+        desayuno: 'Huevos a la mexicana, frijoles y tortillas',
+        cena: 'Empanadas de queso (res), ensalada'
+      },
+      '2025-07-03': { // Día 2
+        desayuno: 'Burritos de huevo con chorizo, ensalada',
+        cena: 'Tortitas de papa, spaguetti, ensalada'
+      },
+      '2025-07-04': { // Día 3
+        desayuno: 'Licuado de fresa, sándwich de cacahuatina',
+        cena: 'Tamales, frijoles rancheros, salsa'
+      },
+      '2025-07-05': { // Día 4
+        desayuno: 'Sincronizadas de jamon y queso, pico de gallo',
+        cena: 'Flautas de papa(res) ensalada, crema'
+      },
+      '2025-07-06': { // Día 5
+        desayuno: 'Avena y pan dulce',
+        cena: 'Coliflor empanizada, frijoles y arroz'
+      },
+      '2025-07-07': { // Día 6
+        desayuno: 'Molletes, papitas',
+        cena: 'Tortas de aguacate con queso(res)'
+      },
+      '2025-07-08': { // Día 7
+        desayuno: 'Chilaquiles y frijoles',
+        cena: 'SOPES'
+      },
+      '2025-07-09': { // Día 8
+        desayuno: 'Tortilla de huevo, frijoles',
+        cena: 'Sopa de fideo con brócoli, frijoles y tortillas'
+      },
+      '2025-07-10': { // Día 9
+        desayuno: 'Yogurt con granola y fruta',
+        cena: 'Sopa de quinoa'
+      },
+      '2025-07-11': { // Día 10
+        desayuno: 'Huevos estrellados con salsa',
+        cena: 'Entomatadas de queso (pollo) frijoles y spagueti'
+      }
+    }
 
     const contadores = {
       desayuno: document.getElementById('contador-desayuno'),
@@ -1271,6 +1419,24 @@
           
           label.appendChild(input)
           label.append(` ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`)
+          
+          // Agregar ícono de menú si existe menú para esta fecha y tipo
+          if (menuData[fechaISO] && menuData[fechaISO][tipo]) {
+            const menuIcon = document.createElement('button')
+            menuIcon.className = 'menu-icon'
+            menuIcon.innerHTML = '🍽️'
+            menuIcon.title = 'Ver menú'
+            menuIcon.disabled = input.disabled
+            
+            menuIcon.addEventListener('click', (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              mostrarMenu(fechaISO, tipo)
+            })
+            
+            label.appendChild(menuIcon)
+          }
+          
           opciones.appendChild(label)
           checkboxes.push(input)
         })
@@ -1430,6 +1596,39 @@
           document.getElementById('modalReservaExistente').style.display = 'none'
         }
       })
+
+      // Funcionalidad de la modal del menú
+      document.getElementById('closeModalMenu').addEventListener('click', () => {
+        document.getElementById('modalMenu').style.display = 'none'
+      })
+
+      // Cerrar modal del menú al hacer clic fuera de él
+      document.getElementById('modalMenu').addEventListener('click', (e) => {
+        if (e.target.id === 'modalMenu') {
+          document.getElementById('modalMenu').style.display = 'none'
+        }
+      })
+
+      // Función para mostrar el menú
+      function mostrarMenu(fechaISO, tipo) {
+        const menuInfo = menuData[fechaISO]
+        if (!menuInfo || !menuInfo[tipo]) return
+
+        const fecha = new Date(fechaISO)
+        const fechaFormateada = formatearFecha(fecha)
+        const tipoComida = tipo === 'desayuno' ? 'Desayuno' : 'Cena'
+        const menu = menuInfo[tipo]
+
+        const contenidoDiv = document.getElementById('contenidoMenu')
+        contenidoDiv.innerHTML = `
+          <div class="menu-item">
+            <h4>${fechaFormateada} - ${tipoComida}</h4>
+            <p>${menu}</p>
+          </div>
+        `
+
+        document.getElementById('modalMenu').style.display = 'flex'
+      }
 
       // Funcionalidad del botón de cancelar reserva
       document.getElementById('cancelarReserva').addEventListener('click', async () => {
