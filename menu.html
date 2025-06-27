@@ -820,7 +820,7 @@
         }
       } else {
         // Si no hay usuario, redirigir al login
-        window.location.href = 'index.html'
+        window.location.href = './index.html'
       }
     }
 
@@ -977,7 +977,7 @@
       const usuarioActual = JSON.parse(localStorage.getItem('usuario_actual'))
       if (!usuarioActual) {
         alert('Error: No se encontró información del usuario. Por favor, inicia sesión nuevamente.')
-        window.location.href = 'index.html'
+        window.location.href = './index.html'
         return
       }
 
@@ -1099,7 +1099,7 @@
       // Verificar que el usuario esté autenticado
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        window.location.href = 'index.html'
+        window.location.href = './index.html'
         return
       }
 
@@ -1120,7 +1120,7 @@
         if (event === 'SIGNED_OUT') {
           console.log('Usuario cerró sesión')
           // Redirigir al login cuando el usuario cierra sesión
-          window.location.href = 'index.html'
+          window.location.href = './index.html'
         }
         
         if (event === 'USER_UPDATED' && session) {
@@ -1186,14 +1186,14 @@
             localStorage.clear()
             sessionStorage.clear()
             
-            // Redirigir a la página principal
-            window.location.href = 'index.html'
+            // Redirigir a la página principal usando URL relativa
+            window.location.href = './index.html'
           } catch (error) {
             console.error('Error durante el logout:', error)
             // Aún así limpiar datos y redirigir
             localStorage.clear()
             sessionStorage.clear()
-            window.location.href = 'index.html'
+            window.location.href = './index.html'
           }
         }
       })

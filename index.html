@@ -11,6 +11,20 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmZHZpbXVsYWVzb2djeWRxeWx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjgxNzAsImV4cCI6MjA2NjQ0NDE3MH0.UXJ3BM0t06n6Z-RFx4lgZZLhabWEdTAvuLAeETJ26fw'
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Configuración para manejo de URLs
+    const CONFIG = {
+      isLocalhost: () => {
+        return window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' ||
+               window.location.hostname === '';
+      },
+      getAuthRedirectUrl: () => {
+        return CONFIG.isLocalhost() 
+          ? `${window.location.origin}/menu.html`
+          : 'https://quikegtzdesarrollo.github.io/Reservas/menu.html';
+      }
+    };
+
     // Función para guardar información del usuario
     async function guardarUsuarioEnDB(user) {
       try {
@@ -89,8 +103,8 @@
             localStorage.setItem('reserva_actual', JSON.stringify(reservas))
           }
           
-          // Redirigir al menú
-          window.location.href = 'menu.html'
+          // Redirigir al menú usando la configuración
+          window.location.href = CONFIG.getAuthRedirectUrl()
         }
 
         // Configurar listener para cambios de autenticación
@@ -118,8 +132,8 @@
               localStorage.setItem('reserva_actual', JSON.stringify(reservas))
             }
             
-            // Redirigir al menú
-            window.location.href = 'menu.html'
+            // Redirigir al menú usando la configuración
+            window.location.href = CONFIG.getAuthRedirectUrl()
           }
           
           if (event === 'SIGNED_OUT') {
@@ -133,16 +147,10 @@
         const loginBtn = document.getElementById('login')
         loginBtn.addEventListener('click', async () => {
           try {
-            // Determinar la URL de redirección basada en el entorno
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            const redirectUrl = isLocalhost 
-              ? `${window.location.origin}/menu.html`
-              : 'https://quikegtzdesarrollo.github.io/Reservas/menu.html'
-            
             await supabase.auth.signInWithOAuth({
               provider: 'google',
               options: {
-                redirectTo: redirectUrl
+                redirectTo: CONFIG.getAuthRedirectUrl()
               }
             })
           } catch (error) {
