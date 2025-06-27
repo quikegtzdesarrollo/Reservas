@@ -598,6 +598,39 @@
       flex: 1;
       max-width: 200px;
     }
+
+    /* Estilos para sábados */
+    .dia.sabado {
+      background-color: #f8f9fa;
+      border-left: 4px solid #ffc107;
+      padding-left: 15px;
+    }
+
+    .dia.sabado h3 {
+      color: #856404;
+    }
+
+    .badge-sabado {
+      background-color: #ffc107;
+      color: #856404;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: normal;
+      margin-left: 10px;
+    }
+
+    /* Estilos para elementos deshabilitados en sábados */
+    .dia.sabado input[type="checkbox"]:disabled + span,
+    .dia.sabado label[style*="opacity: 0.5"] {
+      color: #6c757d;
+      text-decoration: line-through;
+    }
+
+    .dia.sabado button:disabled {
+      background-color: #6c757d !important;
+      color: #fff !important;
+    }
   </style>
 </head>
 <body>
@@ -1140,12 +1173,23 @@
       for (let d = new Date(fechaInicio); d <= fechaFin; d.setDate(d.getDate() + 1)) {
         const fecha = new Date(d) // Copia
         const fechaISO = fecha.toISOString().slice(0, 10)
+        
+        // Verificar si es sábado (día 6 = sábado)
+        const esSabado = fecha.getDay() === 6
 
         const bloque = document.createElement('div')
         bloque.className = 'dia'
+        
+        // Agregar clase especial para sábados
+        if (esSabado) {
+          bloque.classList.add('sabado')
+        }
 
         const titulo = document.createElement('h3')
         titulo.textContent = formatearFecha(fecha)
+        if (esSabado) {
+          titulo.innerHTML += ' <span class="badge-sabado">Solo Desayuno</span>'
+        }
         bloque.appendChild(titulo)
 
         const linea = document.createElement('div')
@@ -1155,13 +1199,26 @@
         btnDia.className = 'mini-boton no-seleccionado'
         btnDia.type = 'button'
         btnDia.textContent = 'Seleccionar todas'
+        
+        // Deshabilitar botón de "Seleccionar todas" para sábados
+        if (esSabado) {
+          btnDia.disabled = true
+          btnDia.style.opacity = '0.5'
+          btnDia.style.cursor = 'not-allowed'
+        }
 
         let diaSeleccionado = false
         const checkboxes = []
 
         btnDia.addEventListener('click', () => {
+          if (esSabado) return // No hacer nada si es sábado
+          
           diaSeleccionado = !diaSeleccionado
-          checkboxes.forEach(cb => cb.checked = diaSeleccionado)
+          checkboxes.forEach(cb => {
+            if (!cb.disabled) {
+              cb.checked = diaSeleccionado
+            }
+          })
           btnDia.textContent = diaSeleccionado ? 'Deseleccionar todas' : 'Seleccionar todas'
           btnDia.classList.toggle('seleccionado', diaSeleccionado)
           btnDia.classList.toggle('no-seleccionado', !diaSeleccionado)
@@ -1176,6 +1233,15 @@
           const input = document.createElement('input')
           input.type = 'checkbox'
           input.value = `${tipo}|${fechaISO}`
+          
+          // Para sábados: solo permitir desayuno, deshabilitar comida y cena
+          if (esSabado && tipo !== 'desayuno') {
+            input.disabled = true
+            input.style.opacity = '0.5'
+            label.style.opacity = '0.5'
+            label.style.cursor = 'not-allowed'
+          }
+          
           label.appendChild(input)
           label.append(` ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`)
           opciones.appendChild(label)
@@ -1238,7 +1304,12 @@
 
       botonTodo.addEventListener('click', () => {
         todosSeleccionados = !todosSeleccionados
-        document.querySelectorAll('#fechas input[type="checkbox"]').forEach(cb => cb.checked = todosSeleccionados)
+        document.querySelectorAll('#fechas input[type="checkbox"]').forEach(cb => {
+          // Solo marcar checkboxes que no estén deshabilitados
+          if (!cb.disabled) {
+            cb.checked = todosSeleccionados
+          }
+        })
         botonTodo.textContent = todosSeleccionados
           ? 'Deseleccionar todas las comidas de todos los días'
           : 'Seleccionar todas las comidas de todos los días'
@@ -1249,9 +1320,12 @@
         // También actualizar los botones por día para que reflejen el mismo estado
         document.querySelectorAll('.dia').forEach(diaDiv => {
           const btnDia = diaDiv.querySelector('button.mini-boton')
-          btnDia.textContent = todosSeleccionados ? 'Deseleccionar todas' : 'Seleccionar todas'
-          btnDia.classList.toggle('seleccionado', todosSeleccionados)
-          btnDia.classList.toggle('no-seleccionado', !todosSeleccionados)
+          // Solo actualizar botones que no estén deshabilitados
+          if (!btnDia.disabled) {
+            btnDia.textContent = todosSeleccionados ? 'Deseleccionar todas' : 'Seleccionar todas'
+            btnDia.classList.toggle('seleccionado', todosSeleccionados)
+            btnDia.classList.toggle('no-seleccionado', !todosSeleccionados)
+          }
         })
       })
 
