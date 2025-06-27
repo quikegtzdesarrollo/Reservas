@@ -1427,12 +1427,18 @@
     function mostrarReservas() {
       const datos = JSON.parse(localStorage.getItem('reserva_actual'))
       const contenidoDiv = document.getElementById('contenidoReservas')
+      const botonCancelar = document.getElementById('cancelarReserva')
 
       if (!datos || datos.length === 0) {
         contenidoDiv.innerHTML = '<div class="no-reservas">No hay reservas registradas.</div>'
+        // Ocultar el botón de cancelar cuando no hay reservas
+        botonCancelar.style.display = 'none'
         document.getElementById('modalReservas').style.display = 'flex'
         return
       }
+
+      // Mostrar el botón de cancelar cuando hay reservas
+      botonCancelar.style.display = 'block'
 
       const { nombre, celular, personas } = datos[0]
 
