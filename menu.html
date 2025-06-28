@@ -987,6 +987,7 @@
     // Estructura de datos del menú con opciones
     const menuData = {
       '2025-07-02': { // Día 1
+        desayuno: '<span style="text-decoration: line-through; color: #999;">Huevos a la mexicana, frijoles y tortillas</span>',
         cena: {
           texto: 'Empanadas de queso (res), ensalada',
           opciones: ['queso', 'res']
@@ -1586,12 +1587,6 @@
 
         const titulo = document.createElement('h3')
         titulo.textContent = formatearFecha(fecha)
-        if (esSabado) {
-          titulo.innerHTML += ' <span class="badge-sabado">Solo Desayuno</span>'
-        }
-        if (esViernes) {
-          titulo.innerHTML += ' <span class="badge-viernes">Solo Desayuno</span>'
-        }
         bloque.appendChild(titulo)
 
         const linea = document.createElement('div')
@@ -1659,7 +1654,6 @@
             input.style.opacity = '0.5'
             label.style.opacity = '0.5'
             label.style.cursor = 'not-allowed'
-            label.innerHTML += ' <span class="badge-bloqueado">Bloqueado</span>'
           }
           
           label.appendChild(input)
