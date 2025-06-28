@@ -513,6 +513,13 @@
       const [anio, mes, dia] = fecha.split('-').map(Number)
       const fechaObj = new Date(anio, mes - 1, dia) // mes - 1 porque los meses van de 0-11
       const fechaFormateada = formatearFecha(fechaObj)
+      
+      console.log('=== DEPURACIÓN DE FECHAS EN mostrarReservas ===')
+      console.log('Fecha recibida:', fecha)
+      console.log('Año, mes, día extraídos:', anio, mes, dia)
+      console.log('Fecha objeto creada:', fechaObj)
+      console.log('Fecha formateada:', fechaFormateada)
+      
       const emojiTipo = obtenerEmojiTipo(tipo)
       const nombreTipo = obtenerNombreTipo(tipo)
       
@@ -695,6 +702,13 @@
       const [anio, mes, dia] = fecha.split('-').map(Number)
       const fechaObj = new Date(anio, mes - 1, dia) // mes - 1 porque los meses van de 0-11
       const fechaFormateada = formatearFecha(fechaObj)
+      
+      console.log('=== DEPURACIÓN DE FECHAS EN mostrarResumenDiaDesdeFuncion ===')
+      console.log('Fecha recibida:', fecha)
+      console.log('Año, mes, día extraídos:', anio, mes, dia)
+      console.log('Fecha objeto creada:', fechaObj)
+      console.log('Fecha formateada:', fechaFormateada)
+      
       tituloResumen.textContent = `Resumen - ${fechaFormateada}`
 
       if (!resumenData || resumenData.length === 0) {
