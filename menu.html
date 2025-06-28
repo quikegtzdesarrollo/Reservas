@@ -1054,12 +1054,12 @@
     // Objeto global para mantener las selecciones de preferencias
     const preferenciasSeleccionadas = {}
 
-    // Función para mostrar el menú con controles de opciones
+    // Función para mostrar el menú con controles de opciones - v2
     function mostrarMenu(fechaISO, tipo) {
       const menuInfo = menuData[fechaISO]
       if (!menuInfo || !menuInfo[tipo]) return
 
-      // Corregir el problema de zona horaria: crear la fecha correctamente
+      // Corregir el problema de zona horaria: crear la fecha correctamente - v2
       const [anio, mes, dia] = fechaISO.split('-').map(Number)
       const fecha = new Date(anio, mes - 1, dia) // mes - 1 porque los meses van de 0-11
       const fechaFormateada = formatearFecha(fecha)
