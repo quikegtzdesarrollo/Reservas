@@ -219,13 +219,21 @@
       return `${dias[fecha.getDay()]}, ${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`
     }
 
-    function obtenerIcono(tipo) {
+    function obtenerIcono(tipo, preferencia = null) {
+      let icono = ''
       switch (tipo) {
-        case 'desayuno': return '🥐 Desayuno'
-        case 'comida': return '🍽️ Comida'
-        case 'cena': return '🌙 Cena'
-        default: return tipo
+        case 'desayuno': icono = '🥐 Desayuno'; break
+        case 'comida': icono = '🍽️ Comida'; break
+        case 'cena': icono = '🌙 Cena'; break
+        default: icono = tipo; break
       }
+      
+      // Agregar preferencia si existe
+      if (preferencia) {
+        icono += ` (${preferencia.charAt(0).toUpperCase() + preferencia.slice(1)})`
+      }
+      
+      return icono
     }
 
     const resumenDiv = document.getElementById('resumen')
@@ -245,19 +253,22 @@
         <div class="titulo-reservas">Reservas</div>
       `
 
-      // Agrupar por fecha
+      // Agrupar por fecha incluyendo preferencias
       const reservasPorFecha = {}
       datos.forEach(r => {
         if (!reservasPorFecha[r.fecha]) reservasPorFecha[r.fecha] = []
-        reservasPorFecha[r.fecha].push(r.tipo)
+        reservasPorFecha[r.fecha].push({
+          tipo: r.tipo,
+          preferencia: r.preferencia
+        })
       })
 
       let resumenTexto = `Nombre: ${nombre}\nCelular: ${celular}\nCantidad: ${personas} persona(s)\n\nReservas:\n`
       let reservasHTML = ''
 
-      Object.entries(reservasPorFecha).forEach(([fecha, tipos]) => {
+      Object.entries(reservasPorFecha).forEach(([fecha, reservas]) => {
         const fechaFormateada = formatearFecha(fecha)
-        const comidasTexto = tipos.map(tipo => obtenerIcono(tipo)).join(', ')
+        const comidasTexto = reservas.map(r => obtenerIcono(r.tipo, r.preferencia)).join(', ')
         resumenTexto += `- ${fechaFormateada}:\n    ${comidasTexto}\n`
         reservasHTML += `<div class="reserva-dia"><strong>${fechaFormateada}</strong>: ${comidasTexto}</div>`
       })
