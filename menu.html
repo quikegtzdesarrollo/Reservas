@@ -814,6 +814,17 @@
       box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
     }
 
+    .opcion-switch.seleccionada {
+      border-color: #007bff;
+      background: #e3f2fd;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    .opcion-switch.seleccionada .opcion-texto {
+      color: #007bff;
+      font-weight: 600;
+    }
+
     .opcion-texto {
       font-size: 14px;
       color: #6c757d;
@@ -1040,6 +1051,9 @@
       }
     }
 
+    // Objeto global para mantener las selecciones de preferencias
+    const preferenciasSeleccionadas = {}
+
     // Función para mostrar el menú con controles de opciones
     function mostrarMenu(fechaISO, tipo) {
       const menuInfo = menuData[fechaISO]
@@ -1058,13 +1072,16 @@
       
       let opcionesHTML = ''
       if (tieneOpciones) {
+        const clavePreferencia = `${fechaISO}-${tipo}`
+        const preferenciaActual = preferenciasSeleccionadas[clavePreferencia]
+        
         opcionesHTML = `
           <div class="opciones-menu">
             <h5>Selecciona tu preferencia:</h5>
             <div class="opciones-container">
               ${menuItem.opciones.map(opcion => `
-                <label class="opcion-switch">
-                  <input type="radio" name="opcion-${fechaISO}-${tipo}" value="${opcion}" required>
+                <label class="opcion-switch ${preferenciaActual === opcion ? 'seleccionada' : ''}">
+                  <input type="radio" name="opcion-${fechaISO}-${tipo}" value="${opcion}" required ${preferenciaActual === opcion ? 'checked' : ''}>
                   <span class="opcion-texto">${opcion.charAt(0).toUpperCase() + opcion.slice(1)}</span>
                 </label>
               `).join('')}
@@ -1094,8 +1111,17 @@
         setTimeout(() => {
           const radioButtons = document.querySelectorAll(`input[name="opcion-${fechaISO}-${tipo}"]`)
           radioButtons.forEach(radio => {
-            radio.addEventListener('change', () => {
+            radio.addEventListener('change', (e) => {
+              const clavePreferencia = `${fechaISO}-${tipo}`
+              preferenciasSeleccionadas[clavePreferencia] = e.target.value
               limpiarErroresOpcion(fechaISO, tipo)
+              
+              // Actualizar visual de las opciones
+              const switches = document.querySelectorAll(`input[name="opcion-${fechaISO}-${tipo}"]`)
+              switches.forEach(sw => {
+                sw.closest('.opcion-switch').classList.remove('seleccionada')
+              })
+              e.target.closest('.opcion-switch').classList.add('seleccionada')
             })
           })
         }, 100)
@@ -1479,9 +1505,10 @@
         
         if (tieneOpciones) {
           // Buscar la opción seleccionada para esta fecha y tipo
-          const opcionSeleccionada = document.querySelector(`input[name="opcion-${fecha}-${tipo}"]:checked`)
+          const clavePreferencia = `${fecha}-${tipo}`
+          const preferenciaGuardada = preferenciasSeleccionadas[clavePreferencia]
           
-          if (!opcionSeleccionada) {
+          if (!preferenciaGuardada) {
             // Mostrar error visual en el modal del menú
             const errorDiv = document.getElementById(`error-opcion-${fecha}-${tipo}`)
             if (errorDiv) {
@@ -1507,7 +1534,7 @@
             fecha, 
             personas,
             user_id: usuarioActual.id,
-            preferencia: opcionSeleccionada.value
+            preferencia: preferenciaGuardada
           })
         } else {
           // Agregar la reserva sin preferencia
