@@ -482,7 +482,11 @@
       
       for (let d = new Date(fechaInicio); d <= fechaFin; d.setDate(d.getDate() + 1)) {
         const fecha = new Date(d)
-        const fechaISO = fecha.toISOString().slice(0, 10)
+        // Corregir el problema de zona horaria: crear la fecha ISO correctamente
+        const anio = fecha.getFullYear()
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+        const dia = String(fecha.getDate()).padStart(2, '0')
+        const fechaISO = `${anio}-${mes}-${dia}`
         const fechaFormateada = formatearFecha(fecha)
         
         const option = document.createElement('option')
@@ -490,8 +494,12 @@
         option.textContent = fechaFormateada
         
         // Preseleccionar fecha actual
-        const hoy = new Date().toISOString().slice(0, 10)
-        if (fechaISO === hoy) {
+        const hoy = new Date()
+        const hoyAnio = hoy.getFullYear()
+        const hoyMes = String(hoy.getMonth() + 1).padStart(2, '0')
+        const hoyDia = String(hoy.getDate()).padStart(2, '0')
+        const hoyISO = `${hoyAnio}-${hoyMes}-${hoyDia}`
+        if (fechaISO === hoyISO) {
           option.selected = true
         }
         
@@ -499,49 +507,12 @@
       }
     }
 
-    // Función para cargar reservas (TODAS las reservas, no solo del usuario logueado)
-    async function cargarReservas() {
-      const fechaSeleccionada = fechaFiltro.value
-      const tipoSeleccionado = tipoFiltro.value
-      
-      if (!fechaSeleccionada) {
-        contenidoLista.innerHTML = '<div class="sin-reservas">Selecciona una fecha</div>'
-        return
-      }
-
-      try {
-        contenidoLista.innerHTML = '<div class="loading">Cargando reservas...</div>'
-        
-        console.log('=== CARGANDO RESERVAS ===')
-        console.log('Fecha seleccionada:', fechaSeleccionada)
-        console.log('Tipo seleccionado:', tipoSeleccionado)
-        
-        // Usar función SQL personalizada que bypass RLS
-        const { data, error } = await supabaseAdmin
-          .rpc('obtener_todas_reservas_admin', {
-            p_fecha: fechaSeleccionada,
-            p_tipo: tipoSeleccionado
-          })
-
-        if (error) {
-          console.error('Error cargando reservas:', error)
-          contenidoLista.innerHTML = '<div class="sin-reservas">Error al cargar las reservas</div>'
-          return
-        }
-
-        console.log('Reservas obtenidas de la base de datos:', data)
-        console.log('Cantidad de reservas:', data ? data.length : 0)
-
-        mostrarReservas(data, fechaSeleccionada, tipoSeleccionado)
-      } catch (error) {
-        console.error('Error en cargarReservas:', error)
-        contenidoLista.innerHTML = '<div class="sin-reservas">Error al cargar las reservas</div>'
-      }
-    }
-
     // Función para mostrar reservas
     function mostrarReservas(reservas, fecha, tipo) {
-      const fechaFormateada = formatearFecha(new Date(fecha))
+      // Corregir el problema de zona horaria: crear la fecha correctamente
+      const [anio, mes, dia] = fecha.split('-').map(Number)
+      const fechaObj = new Date(anio, mes - 1, dia) // mes - 1 porque los meses van de 0-11
+      const fechaFormateada = formatearFecha(fechaObj)
       const emojiTipo = obtenerEmojiTipo(tipo)
       const nombreTipo = obtenerNombreTipo(tipo)
       
@@ -720,7 +691,10 @@
 
     // Función para mostrar resumen del día desde función SQL
     function mostrarResumenDiaDesdeFuncion(resumenData, fecha) {
-      const fechaFormateada = formatearFecha(new Date(fecha))
+      // Corregir el problema de zona horaria: crear la fecha correctamente
+      const [anio, mes, dia] = fecha.split('-').map(Number)
+      const fechaObj = new Date(anio, mes - 1, dia) // mes - 1 porque los meses van de 0-11
+      const fechaFormateada = formatearFecha(fechaObj)
       tituloResumen.textContent = `Resumen - ${fechaFormateada}`
 
       if (!resumenData || resumenData.length === 0) {
@@ -886,6 +860,46 @@
       cargarResumenDia()
       cargarReservas()
     })
+
+    // Función para cargar reservas (TODAS las reservas, no solo del usuario logueado)
+    async function cargarReservas() {
+      const fechaSeleccionada = fechaFiltro.value
+      const tipoSeleccionado = tipoFiltro.value
+      
+      if (!fechaSeleccionada) {
+        contenidoLista.innerHTML = '<div class="sin-reservas">Selecciona una fecha</div>'
+        return
+      }
+
+      try {
+        contenidoLista.innerHTML = '<div class="loading">Cargando reservas...</div>'
+        
+        console.log('=== CARGANDO RESERVAS ===')
+        console.log('Fecha seleccionada:', fechaSeleccionada)
+        console.log('Tipo seleccionado:', tipoSeleccionado)
+        
+        // Usar función SQL personalizada que bypass RLS
+        const { data, error } = await supabaseAdmin
+          .rpc('obtener_todas_reservas_admin', {
+            p_fecha: fechaSeleccionada,
+            p_tipo: tipoSeleccionado
+          })
+
+        if (error) {
+          console.error('Error cargando reservas:', error)
+          contenidoLista.innerHTML = '<div class="sin-reservas">Error al cargar las reservas</div>'
+          return
+        }
+
+        console.log('Reservas obtenidas de la base de datos:', data)
+        console.log('Cantidad de reservas:', data ? data.length : 0)
+
+        mostrarReservas(data, fechaSeleccionada, tipoSeleccionado)
+      } catch (error) {
+        console.error('Error en cargarReservas:', error)
+        contenidoLista.innerHTML = '<div class="sin-reservas">Error al cargar las reservas</div>'
+      }
+    }
   </script>
 </body>
 </html> 
