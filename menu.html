@@ -1352,7 +1352,7 @@
     }
 
     const fechaInicio = new Date(2025, 6, 2)  // Julio es mes 6 (0 index)
-    const fechaFin = new Date(2025, 6, 12)
+    const fechaFin = new Date(2025, 6, 11)  // Hasta el 11 de julio
 
     const contadores = {
       desayuno: document.getElementById('contador-desayuno'),
@@ -1661,7 +1661,6 @@
           
           // Agregar ícono de menú si existe menú para esta fecha y tipo
           if (menuData[fechaISO] && menuData[fechaISO][tipo]) {
-            console.log(`Agregando ícono de menú para ${fechaISO} - ${tipo}:`, menuData[fechaISO][tipo])
             const menuIcon = document.createElement('button')
             menuIcon.className = 'menu-icon'
             menuIcon.innerHTML = '🍽️'
@@ -1675,8 +1674,6 @@
             })
             
             label.appendChild(menuIcon)
-          } else {
-            console.log(`No hay menú para ${fechaISO} - ${tipo}`)
           }
           
           opciones.appendChild(label)
