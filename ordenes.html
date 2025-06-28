@@ -127,6 +127,22 @@
       text-align: center;
     }
 
+    /* Estilos para las etiquetas de preferencias */
+    .reserva-preferencia {
+      background: #FF6B35;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 12px;
+      text-align: center;
+      text-transform: capitalize;
+    }
+
+    .reserva-preferencia:empty {
+      display: none;
+    }
+
     /* Estilos para el switch de entregado */
     .switch-container {
       display: flex;
@@ -566,7 +582,8 @@
             celular: reserva.celular,
             personas: reserva.personas,
             platillos: reserva.personas, // Cada persona = 1 platillo
-            entregado: reserva.entregado // Preservar el estado de entrega
+            entregado: reserva.entregado, // Preservar el estado de entrega
+            preferencias: [] // Array para almacenar preferencias únicas
           }
           console.log(`Nueva reserva agrupada creada para: ${reserva.nombre} con ID: ${reserva.id}`)
         } else {
@@ -578,6 +595,11 @@
           if (reserva.entregado) {
             reservasAgrupadas[key].entregado = true
           }
+        }
+        
+        // Agregar preferencia si existe y no está duplicada
+        if (reserva.preferencia && !reservasAgrupadas[key].preferencias.includes(reserva.preferencia)) {
+          reservasAgrupadas[key].preferencias.push(reserva.preferencia)
         }
       })
 
@@ -634,11 +656,18 @@
       reservasFiltradas.forEach(reserva => {
         totalPlatillos += reserva.platillos
         const entregadoClass = reserva.entregado ? 'entregado' : ''
+        
+        // Generar HTML para las etiquetas de preferencias
+        const preferenciasHTML = reserva.preferencias.length > 0 
+          ? reserva.preferencias.map(pref => `<span class="reserva-preferencia">${pref}</span>`).join('')
+          : ''
+        
         html += `
           <div class="reserva-item ${entregadoClass}" data-id="${reserva.id}">
             <span class="reserva-nombre">${reserva.nombre} - ${reserva.celular}</span>
             <div style="display: flex; align-items: center; gap: 15px;">
               <span class="reserva-cantidad">${reserva.platillos} platillo${reserva.platillos > 1 ? 's' : ''}</span>
+              ${preferenciasHTML}
               <div class="switch-container">
                 <label class="switch">
                   <input type="checkbox" ${reserva.entregado ? 'checked' : ''} onchange="actualizarEntrega('${reserva.id}', this.checked)">
@@ -649,7 +678,7 @@
             </div>
           </div>
         `
-        console.log(`Agregando: ${reserva.nombre} - ${reserva.celular} - ${reserva.platillos} platillos - Entregado: ${reserva.entregado}`)
+        console.log(`Agregando: ${reserva.nombre} - ${reserva.celular} - ${reserva.platillos} platillos - Preferencias: ${reserva.preferencias.join(', ')} - Entregado: ${reserva.entregado}`)
       })
 
       console.log('Total de platillos:', totalPlatillos)
