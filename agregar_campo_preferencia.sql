@@ -1,14 +1,18 @@
 -- Script para agregar campo preferencia a la tabla reservas
 -- Este campo permitirá almacenar las preferencias de comida del usuario
 
--- 1. Agregar el campo preferencia a la tabla reservas
+-- 1. Eliminar funciones existentes primero
+DROP FUNCTION IF EXISTS obtener_todas_reservas_admin(DATE, TEXT);
+DROP FUNCTION IF EXISTS actualizar_preferencia(UUID, TEXT);
+
+-- 2. Agregar el campo preferencia a la tabla reservas
 ALTER TABLE reservas 
 ADD COLUMN preferencia TEXT;
 
--- 2. Crear un índice para mejorar el rendimiento de consultas por preferencia
+-- 3. Crear un índice para mejorar el rendimiento de consultas por preferencia
 CREATE INDEX idx_reservas_preferencia ON reservas(preferencia);
 
--- 3. Actualizar la función administrativa para incluir el nuevo campo
+-- 4. Actualizar la función administrativa para incluir el nuevo campo
 CREATE OR REPLACE FUNCTION obtener_todas_reservas_admin(
     p_fecha DATE DEFAULT NULL,
     p_tipo TEXT DEFAULT NULL
@@ -49,7 +53,7 @@ BEGIN
 END;
 $$;
 
--- 4. Crear función para actualizar la preferencia
+-- 5. Crear función para actualizar la preferencia
 CREATE OR REPLACE FUNCTION actualizar_preferencia(
     p_id UUID,
     p_preferencia TEXT
@@ -67,13 +71,13 @@ BEGIN
 END;
 $$;
 
--- 5. Dar permisos para ejecutar las funciones
+-- 6. Dar permisos para ejecutar las funciones
 GRANT EXECUTE ON FUNCTION obtener_todas_reservas_admin TO anon;
 GRANT EXECUTE ON FUNCTION obtener_todas_reservas_admin TO authenticated;
 GRANT EXECUTE ON FUNCTION actualizar_preferencia TO anon;
 GRANT EXECUTE ON FUNCTION actualizar_preferencia TO authenticated;
 
--- 6. Verificar que el campo se agregó correctamente
+-- 7. Verificar que el campo se agregó correctamente
 SELECT column_name, data_type, is_nullable, column_default
 FROM information_schema.columns 
 WHERE table_name = 'reservas' 

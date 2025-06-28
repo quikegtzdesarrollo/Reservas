@@ -842,6 +842,17 @@
       border-color: #c82333;
       background: #f5c6cb;
     }
+
+    /* Estilos para el badge de bloqueado */
+    .badge-bloqueado {
+      background-color: #dc3545;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body>
@@ -976,7 +987,6 @@
     // Estructura de datos del menú con opciones
     const menuData = {
       '2025-07-02': { // Día 1
-        desayuno: 'Huevos a la mexicana, frijoles y tortillas',
         cena: {
           texto: 'Empanadas de queso (res), ensalada',
           opciones: ['queso', 'res']
@@ -1021,7 +1031,7 @@
         cena: 'Sopa de quinoa'
       },
       '2025-07-11': { // Día 10
-        desayuno: 'Huevos estrellados con salsa',
+        desayuno: 'Huevos a la mexicana, frijoles y tortillas',
         cena: {
           texto: 'Entomatadas de queso (pollo) frijoles y spagueti',
           opciones: ['queso', 'pollo']
@@ -1641,6 +1651,15 @@
             input.style.opacity = '0.5'
             label.style.opacity = '0.5'
             label.style.cursor = 'not-allowed'
+          }
+          
+          // Bloquear desayuno del 2 de julio (miércoles)
+          if (fechaISO === '2025-07-02' && tipo === 'desayuno') {
+            input.disabled = true
+            input.style.opacity = '0.5'
+            label.style.opacity = '0.5'
+            label.style.cursor = 'not-allowed'
+            label.innerHTML += ' <span class="badge-bloqueado">Bloqueado</span>'
           }
           
           label.appendChild(input)
