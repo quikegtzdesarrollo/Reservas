@@ -1856,6 +1856,15 @@
 
       // Funcionalidad del botón de cancelar reserva
       document.getElementById('cancelarReserva').addEventListener('click', async () => {
+        // Validar que no se pueda cancelar a partir del 2 de julio de 2025
+        const fechaActual = new Date()
+        const fechaLimite = new Date('2025-07-02')
+        
+        if (fechaActual >= fechaLimite) {
+          alert('❌ No se pueden cancelar reservas a partir del 2 de julio de 2025.\n\nPor favor, contacta directamente con el proveedor del servicio si necesitas hacer cambios en tu reserva.')
+          return
+        }
+        
         if (confirm('¿Estás seguro de que deseas cancelar tu reserva? Esta acción no se puede deshacer.')) {
           try {
             const datos = JSON.parse(localStorage.getItem('reserva_actual')) || []
