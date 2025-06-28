@@ -1661,6 +1661,7 @@
           
           // Agregar ícono de menú si existe menú para esta fecha y tipo
           if (menuData[fechaISO] && menuData[fechaISO][tipo]) {
+            console.log(`Agregando ícono de menú para ${fechaISO} - ${tipo}:`, menuData[fechaISO][tipo])
             const menuIcon = document.createElement('button')
             menuIcon.className = 'menu-icon'
             menuIcon.innerHTML = '🍽️'
@@ -1674,6 +1675,8 @@
             })
             
             label.appendChild(menuIcon)
+          } else {
+            console.log(`No hay menú para ${fechaISO} - ${tipo}`)
           }
           
           opciones.appendChild(label)
